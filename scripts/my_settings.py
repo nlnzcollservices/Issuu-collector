@@ -12,13 +12,19 @@ import logging
 
 script_folder = os.getcwd()
 working_folder = "\\".join(script_folder.split("\\")[:-1])
-#file_folder = os.path.join(working_folder, "files")
+file_folder = os.path.join(working_folder, "files")
 temp_folder = os.path.join(working_folder,"temp_files")
+not_processed_files = os.path.join(working_folder, "not_processed_files")
 #logs_folder = os.path.join(working_folder, "log")
 assets_folder = os.path.join(working_folder,"assets")
 template_folder = os.path.join(assets_folder, "templates")
 report_folder= os.path.join(working_folder, "reports")
+report_folder_images = os.path.join(working_folder, "reports_images")
 #log_folder = os.path.join(logs_folder, "log")
+email_folder = os.path.join(working_folder,"emails")
+email_log = os.path.join(email_folder, "issuu_email_log.txt")
+to_send_email = os.path.join(email_folder, "to_send")
+sent_emal = os.path.join(email_folder,"sent")
 
 # database_fullname = os.path.join(database_folder, "podcasts.db")
 sip_folder = os.path.join(working_folder, "SIP")
@@ -53,12 +59,15 @@ sb_key= config.get("configuration", "sandbox")
 logging.basicConfig(level=logging.INFO,  datefmt='%Y-%m-%d %H:%M:%S', format = "%(name)15s (%(levelname)s) : %(message)s[%(asctime)s]")
 	
 months_dictionary = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06","July":"07", "August":"08","September":"09", "October":"10","November":"11", "December":"12"}
-seas_dict = {"Spring":"October","Autumn":"April", "Winter":"July", "Summer":"January","spring":"October","autumn":"April", "winter":"July", "summer":"January"}
+seas_dict = {"Spring":"October","Autumn":"April", "Winter":"July", "Summer":"January","Summers":"January","spring":"October","autumn":"April", "winter":"July", "summer":"January","Hōtoke":"July", "Kōanga":"October", "Raumati":"January", "Ngahuru":"April","Chtistmas":"December", "christmas":"December"}
 months = ["January", "February", "March", "April", "May", "June", "July", "August","September", "October","November", "December"]
-reversed_season = {"10":"Spring", "04":"Autumn","07":"Winter","01":"Summer"}
+reversed_season = {"10":"Spring", "11":"Spring", "09":"Spring","03":"Autumn", "04":"Autumn", "05":"Autumn","06":"Winter","07":"Winter", "08":"Winter","01":"Summer","02":"Summer","12":"Summer"}
+term_dict = {"1":"January","2":"April", "3":"July", "4":"October"}
+reversed_term =  {"10":"4", "11":"4", "09":"4","03":"2", "04":"2", "05":"2","06":"3","07":"3", "08":"Winter","01":"1","02":"1","12":"1"}
+short_month_dict = {"JAN":"January","FEB":"February", "MAR":"March","APR":"April","MAY":"May","JUN":"June","JUL":"July","AUG":"August","SEP":"September","OCT":"October","NOV":"November","DEC":"December"}
 
-
-
+#############################################################Emails######################################################
+email_address_line = "LDR@dia.govt.nz"
 
 
 def main():
