@@ -67,3 +67,9 @@ ed_gazette_99-6
 education_gazette_100.7_book_issuu
 education_gazette_99.1
 book_100.12_issuu
+100.14_book_issuu
+100.15_ed_gazette_issuu
+education_gazette_100.13_issuu
+101.1_book_issuu
+100.16_book_issuu
+book_101.2_issuu

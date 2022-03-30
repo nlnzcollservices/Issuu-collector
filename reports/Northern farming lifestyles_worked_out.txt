@@ -1517,3 +1517,9 @@ kl_feb_15_12
 kl_jul_26_16
 wfl_may_2020
 kl_jun_1_21
+nfl_oct_2021
+nfl_nov_2021
+nfl_dec_2021
+nfl_jan_2022
+nfl_feb_2022
+nfl_mar_2022
