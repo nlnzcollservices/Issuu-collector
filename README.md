@@ -7,7 +7,7 @@
 5. [FAQs](#faqs)
 ## General Info
 ***
-The script is collecting pdfs from Issuu platform. Foo detailed information read ["Technical_notes.txt"](/blob/main/Issuu/documentation/Technical_notes.txt)
+The script is collecting pdfs from Issuu platform. Foo detailed information read ["Technical_notes.txt"]([/blob/main/Issuu/documentation/Technical_notes.txt](https://github.com/nlnzcollservices/Issuu/blob/main/documentation/technical_notes.txt)
 ### Pipeline
 ![Issuu](/documentation/Issuu.png)
 ## Technologies
