@@ -75,4 +75,4 @@ $ python issuu.py
 ```
 ## Collaboration and integration
 
-Read ["Technical_notes.txt"](/documentation/Technical_notes.txt) TODO section
+Read ["Technical_notes.txt"](https://github.com/nlnzcollservices/Issuu/blob/main/documentation/technical_notes.txt)TODO section
