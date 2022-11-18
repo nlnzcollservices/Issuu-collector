@@ -13,7 +13,3 @@ ppm_march_april
 pwc
 pwc_2019
 rib_july_august
-alloy_boats_19e4af061d9e4d
-alloy_boats_jan_feb
-allow_boat_sept_oct
-allow_boats_-_copy1
