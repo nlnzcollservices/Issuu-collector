@@ -3,12 +3,14 @@ import sys
 import dateparser
 from time import mktime
 from datetime import datetime as dt
-from issuu_images import issuu_dict
+# from issuu_images import issuu_dict
 import re
 sys.path.insert(0,r"Y:\ndha\pre-deposit_prod\LD_working\podcasts\scripts") 
 from alma_tools import AlmaTools
 import re
 from my_settings import seas_dict,term_dict
+import urllib3
+urllib3.disable_warnings()
 
 
 def parse_the_labels(label):
@@ -127,7 +129,9 @@ def parse_the_labels(label):
 			month_number = "01"
 			my_date = "{} {} {}".format(year, month_number, day)
 			flag_month = True
+		# print(my_date, volume, issue,  number,season, month_string, month_number, year, term, flag_season, flag_month, flag_term)
 		return (my_date, volume, issue,  number,season, month_string, month_number, year, term, flag_season, flag_month, flag_term)
+
 
 def last_repres_getter(mms,pub_name, two_years_ago, seas_dict):
 
@@ -158,8 +162,8 @@ def last_repres_getter(mms,pub_name, two_years_ago, seas_dict):
 						# print(label)
 
 				# if "2021" in label:# or "2020" in label:
-						print(label)
-						print(deliv_urls[i])
+						# print(label)
+						# print(deliv_urls[i])
 				#if not label in ["2021 07 ","2021 06 ","2021 05 ","2021 04 "]:
 				# if "2021" in label or "2020" in label:
 				# # 	print(my_alma.xml_response_data)

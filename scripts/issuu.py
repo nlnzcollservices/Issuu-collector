@@ -9,6 +9,7 @@ import shutil
 import dateparser
 import pyautogui
 import keyboard
+from issuu_cover_displayer import routine as covers_routine
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
 from time import mktime, sleep
@@ -16,11 +17,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from sys import platform
 from selenium.common import exceptions
+from selenium.webdriver.chrome.options import Options
 from rosetta_sip_factory.sip_builder import build_sip
 from description_maker import make_description
 import description_maker
 from issuu_dict import issuu_dict
-from my_settings import sip_folder, to_send_email, temp_folder, email_address_line, report_folder, template_folder,logging, rosetta_folder, seas_dict, term_dict, months, reversed_season, months_dictionary,short_month_dict, not_processed_files, email_log, reversed_term
+from my_settings import  to_send_email, temp_folder,temp_sip_folder, email_address_line, report_folder, template_folder,logging, rosetta_folder, seas_dict, term_dict, months, reversed_season, months_dictionary,short_month_dict, not_processed_files, email_log, reversed_term, issue_dict
+from my_settings  import sip_folder
 # os.environ['REQUESTS_CA_BUNDLE'] = os.path.join( r'C:\Users\Korotesv\AppData\Roaming\Python\Python310\site-packages\certifi', 'ZscalerRootCertificate-2048-SHA256.crt')
 sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\podcasts\scripts')
 from alma_tools import AlmaTools
@@ -28,6 +31,7 @@ from email_maker import Gen_Emails
 #sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\waterford\scripts')
 import last_representation_getter
 import send_email
+import json
 
 # if dt.now().strftime("%m") in ["11","12","1"]:
 # 		seas_dict ["Summer"]="December"
@@ -46,8 +50,33 @@ fp.set_preference("pdfjs.disabled",True)
 fp.set_preference("browser.download.manager.showWhenStarting",False)
 driver = webdriver.Firefox(firefox_profile=fp)
 
+
+prefs = {
+  "download.default_directory": temp_folder,
+  "download.prompt_for_download": False,
+  "download.directory_upgrade": True,
+  "safebrowsing.enabled": True,
+  "plugins.always_open_pdf_externally": True
+}
+
+options = Options()
+options.add_experimental_option("prefs", prefs)
+options.add_argument("--start-maximized");
+# options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument("disable-infobars")
+options.add_argument("--disable-extensions")
+options.add_argument("--disable-dev-shm-usage") #overcome limited resource problems
+options.add_experimental_option("excludeSwitches", ["enable-automation"])
+options.add_experimental_option('useAutomationExtension', False)
+
+#driver =webdriver.Chrome(chrome_options=options)
+
+
 logger = logging.getLogger(__name__)
 base_url = r"https://issuu.com/"
+test_url = r"https://issuu.com/dressagenzbulletin"
 search_url = r"http://search.issuu.com/api/2_0/document"
 # page_url = r"https://image.isu.pub/"
 # page_url_part2 = "/jpg/page_"
@@ -57,6 +86,24 @@ key = "prod"
 
 year_now =dt.now().strftime('%Y')
 last_year =str(int(dt.now().strftime('%Y'))-1)
+
+
+try:
+	driver.get(test_url)
+except Exception as e:
+	print(str(e))
+driver.implicitly_wait(10)
+try:				
+	driver.find_element(By.ID,"CybotCookiebotDialogBodyButtonAccept").click()
+except Exception as e:
+	print(str(e))
+	try:
+		driver.find_element(By.ID,"CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll").click()
+	except Exception as e:
+		print(str(e))
+
+
+
 
 # http://search.issuu.com/api/2_0/document?username=username&pageSize=20&startIndex=20
 class ItemMaker():
@@ -113,8 +160,7 @@ class ItemMaker():
 
 
 		"""
-		print("#"*50)
-		print(pub_name)
+
 		if not self.check_item_in_the_system(pub_name, description):
 			chron_i_stat = "<chronology_i></chronology_i>"
 			chron_j_stat = "<chronology_j></chronology_j>"
@@ -154,7 +200,8 @@ class ItemMaker():
 			logger.info("Creating item")
 			my_alma = AlmaTools(key)
 			#print(item_data)
-			my_alma.create_item_by_po_line(issuu_dict[pub_name]["po_line"], item_data)
+			receive_date = dt.now().strftime("%Y-%m-%d")
+			my_alma.create_item_by_po_line(issuu_dict[pub_name]["po_line"], item_data,{"receive_date":receive_date})
 			print(my_alma.xml_response_data)
 			logger.info(my_alma.xml_response_data)
 			logger.debug(my_alma.status_code)
@@ -223,7 +270,8 @@ class SIPMaker():
 				bool  - True, if built, False otherwise
 			"""
 			logger.info("Making sips")
-			
+			os.chdir("..")
+			print(os.getcwd())
 			self.output_folder = os.path.join(sip_folder, self.pub_name.replace(" ","_") + "_"+self.description.replace(" ","").replace(".","_").replace("(","-").replace(")","-").replace(",","-").rstrip("-").rstrip("_"))
 			print(self.file_folder_place)
 			print(self.output_folder)
@@ -233,7 +281,7 @@ class SIPMaker():
 									pres_master_dir=self.file_folder_place,
 									generalIECharacteristics=[{"IEEntityType":"PeriodicIE","UserDefinedA":"issuu"}],
 									objectIdentifier= [{"objectIdentifierType":"ALMAMMS", "objectIdentifierValue":issuu_dict[self.pub_name]["mms_id"]}],
-									accessRightsPolicy=[{"policyId":"100"}],
+									accessRightsPolicy=[{"policyId":issuu_dict[self.pub_name]["access"]}],
 									input_dir=self.file_folder_place ,
 									digital_original=True,
 									sip_title=self.pref+self.pub_name+"_"+self.description,
@@ -251,6 +299,8 @@ class SIPMaker():
 			except Exception as e:
 				print(str(e))
 				logger.error(str(e))
+			os.chdir("scripts")
+			print(os.getcwd())
 
 
 def sip_checker(sippath):
@@ -345,17 +395,34 @@ def sip_checker(sippath):
 # 	return{"issue":issue,  "season":season, "day":day,"month_string": month,"year":year}
 
 def request_title(pdf_url):
-	r=requests.get(pdf_url)
+	r=requests.get(pdf_url ,verify=False)
 	my_soup = bs(r.text,"lxml")
-	# print(my_soup)
-	web_title = my_soup.find_all("h1")[0].text.rstrip(" ")
+	try:
+		web_title = my_soup.find_all("h1")[0].text
+	except:
+		try:
+			web_title = my_soup.find_all("h3")[0].text
+		except:
+			web_title = my_soup.find_all("title")[0].text
 	return web_title
+
 def request_title_date(pdf_url):
-	r=requests.get(pdf_url)
-	my_soup = bs(r.text,"lxml")
-	web_title = my_soup.find_all("h1")[0].text.rstrip(" ")
-	published_stamp = my_soup.find_all("time")[0].attrs["datetime"]
-	published = my_soup.find_all("time")[0].text
+	r=requests.get(pdf_url,verify=False)
+	my_soup = bs(r.text,"html.parser")
+	try:
+		web_title = my_soup.find_all("h1")[0].text
+	except:
+		web_title = my_soup.find_all("h3")[0].text
+	try:
+		published_stamp = my_soup.find_all("time")[0].attrs["datetime"]
+		published = my_soup.find_all("time")[0].text
+	except:
+		data = my_soup.find_all('script')[9]["data-json"]#, type='application/ld+json').text)
+		json_object = json.loads(data)
+		published_stamp = json_object["initialDocumentData"]["document"]["originalPublishDateInISOString"]
+		published = published_stamp.split("T")[0]
+		web_title = json_object["initialDocumentData"]["document"]["title"]
+
 	return web_title, published,published_stamp
 
 def download_wait(path_to_downloads):
@@ -366,7 +433,7 @@ def download_wait(path_to_downloads):
         time.sleep(1)
         dl_wait = False
         for fname in os.listdir(path_to_downloads):
-            if fname.endswith('part'):
+            if fname.endswith('part') or fname.endswith('.crdownload'):
                 dl_wait = True
         seconds += 1
     return seconds
@@ -423,7 +490,7 @@ def harvester_routine(issuu):
 
 	"""
 	sent_emails = []
-	if issuu in ["Bunnings New Zealand",'World of wine','Diabetes wellness','Better breathing',"Human resources","Forest and bird",'Franchise New Zealand','Active retirees','Air chats',"New Zealand cameratalk",'Summerset scene','Family care',"Explore Dunedin"]:
+	if issuu in ["Line of defence","Bunnings New Zealand",'Diabetes wellness','Better breathing',"Human resources","Forest and bird",'Franchise New Zealand','Air chats',"New Zealand cameratalk",'Summerset scene','Family care',"Explore Dunedin","Wide Sky"]:#'World of wine',
 		seas_dict ["Summer"]="December"
 		seas_dict["summer"] = "December"
 		seas_dict["Raumati"]="December"
@@ -448,7 +515,7 @@ def harvester_routine(issuu):
 	logger.info(issuu_dict[issuu]["url"])
 	username = issuu_dict[issuu]["username"]
 	params = {"username":username,"pageSize":"100"}
-	r = requests.get(search_url,params = params)
+	r = requests.get(search_url,params = params, verify=False)
 	#logger.setLevel("DEBUG")
 	logger.debug(r.text)
 	my_dates = []
@@ -473,6 +540,11 @@ def harvester_routine(issuu):
 			data = f.read()
 		for el in data.split("\n")[:-1]:
 			my_docnames.append(el)
+		with open(os.path.join(report_folder,issuu + "_worked_out2.txt"),"r")as f:
+			data = f.read()
+		for el in data.split("\n")[:-1]:
+			my_docnames.append(el)
+
 	except Exception as e:
 		print(str(e))
 	if my_docnames !=[]:
@@ -494,7 +566,7 @@ def harvester_routine(issuu):
 	for ind in range(int(num_found)//100+2):
 		start_index = ((int(num_found)//100)-ind)*100
 		params["startIndex"]=start_index
-		r = requests.get(search_url, params)
+		r = requests.get(search_url, params, verify=False)
 		# print(r.url)
 		my_doc_json = r.json()["response"]["docs"]
 		logger.debug(my_doc_json)
@@ -516,8 +588,9 @@ def harvester_routine(issuu):
 				season = None
 				term = None
 				overflow_flag = False
-				my_date = None
+				my_date = "None"
 				custom_design = None
+				published_stamp = None
 				others = []
 				# print(doc["docname"])
 				pdf_url =base_url+issuu_dict[issuu]["username"]+pdf_url_part2+doc["docname"]
@@ -535,23 +608,226 @@ def harvester_routine(issuu):
 					# 		my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 					# 	else:
 					# 		others.append(doc["docname"])
-					if issuu in ['Ashburton guardian']:
-						# print(doc["docname"])
-						if doc["docname"].startswith("ag"):
+					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
+					if issuu in ['Lizard News']:
 							print(doc["docname"])
-							# web_title = request_title(pdf_url)
-							# print(web_title)
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+					if issuu in ['Cruise news']:
+					 	if "cruise" in doc["docname"] and "news" in doc["docname"]:
+					 		print(doc["docname"])
+					 		web_title = request_title(pdf_url)
+					 		print(web_title)
+					 		year = web_title.split(" ")[-1]
+					 		month = web_title.split(" ")[-2]
+					 		my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+					 	else:
+					 		others.append(doc["docname"])
+					if issuu in ['NZsecurity']:
+					 	if "nzsm" in doc["docname"]:
+					 		print(doc["docname"])
+					 		web_title = request_title(pdf_url)
+					 		print(web_title)
+					 		year = web_title.split(" ")[-1]
+					 		month = web_title.split(" ")[-2]
+					 		print(year)
+					 		print(month)
+					 		if "-" in month:
+					 			month = month.split("-")[0]
+					 			if not month in months_dictionary.keys():
+					 				month = web_title.split(" ")[-2].split("-")[-1]
+
+					 		if month in short_month_dict.keys():
+					 			month = short_month_dict[month]
+					 		if year == "20201":
+					 			year = "2021"
+					 		
+
+
+					 		if web_title.split(" ")[-3] in short_month_dict:
+					 			month = web_title.split(" ")[-3].split("-")[-1]
+					 		print(month)
+					 		my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+					 	else:
+					 		others.append(doc["docname"])
+					if issuu in ["Line of defence"]:
+						if "lod" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							season = web_title.split(" ")[-2]
+							if "(" in season:
+								season =web_title.split(" ")[-3]
+							print(season)
+							if "/" in year:
+								year="20"+year.split("/")[-1]
+							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Fire NZ']:
+					 	if "firenz" in doc["docname"] or  "fnzm" in doc["docname"]:
+					 		print(doc["docname"])
+					 		web_title = request_title(pdf_url)
+					 		print(web_title)
+					 		year = web_title.split(" ")[-1]
+					 		month = web_title.split(" ")[-2]
+							
+					 		my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+					 	else:
+					 		others.append(doc["docname"])
+					if issuu in ['Hauraki rail trail guide']:
+						if "hauraki" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							web_title = web_title.rstrip("Gguide")
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+
+					if issuu in ['Guardian property']:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							# year = web_title.split(" ")[-1]
+							# month = web_title.split(" ")[-2]
+							
+							# my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+
+					if issuu in ["The record"]:
+						if doc["docname"].startswith("tr"):
+							print(doc["docname"])
 							year = doc["docname"].split("_")[-1]
-							month = doc["docname"].split("_")[-3]
-							day = doc["docname"].split("_")[-2]
+							if len(year)==2:
+								year =="20"+year
+							month = short_month_dict[doc["docname"].split("_")[-3].upper()]
+							day =doc["docname"].split("_")[-2]							
 							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
+					if issuu in ['Te Rā o Waitangi']:
+						if "waitangi" in doc["docname"]:
+							print(doc["docname"])
+							year = re.findall(r'\d{4}', doc["docname"])[0]
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+
+					if issuu in ['Winepress the official magazine of Wine Marlborough']:
+						if not "annual" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ["Irhace"]:
+						if not "_kit_" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							if "-" in month:
+								month = month.split("-")[0]
+								if month.capitalize() in ["Dec","December"]:
+									month = "Jan"
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Midwife Aotearoa New Zealand']:
+							print(doc["docname"])
+							web_title, published, published_stamp = request_title_date(pdf_url)
+							year = dateparser.parse(published_stamp).strftime("%Y")
+							month = dateparser.parse(published_stamp).strftime("%B")
+							issue_list = re.findall(r'\d{3}', doc["docname"])[0]
+							for el in issue_list:
+								if len(el) >3 and len (el)<2:
+									issue = str(el)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							print(issue, month, year)
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+					if issuu in ['Regulus']:
+						if doc["docname"].startswith("reg"):
+							print(doc["docname"])
+							try:
+								web_title, published, published_stamp = request_title_date(pdf_url)
+							except:
+								web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							issue = web_title.split(" ")[-2].rstrip(",")
+							for el in doc["docname"].split("_"):
+								if el.capitalize() in months:
+									month = str(el)
+								elif el.capitalize() in short_month_dict.keys():
+									month = short_month_dict[el.capitalize()]
+							if not month:
+								try:
+									month = dateparser.parse(published_stamp).strftime("%m")
+								except:
+									pass
+							if doc["docname"] in ["reg_2021_issue_3_lr"]:
+								month = "November"
+							if doc["docname"] in ["regulus_issue_2_lr"]:
+								month = "August"
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Wide Sky']:
+						if "wide" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							season = web_title.split(" ")[-2]
+							if doc["docname"] in ["widesky_online_issue"]:
+								year = "2021"
+								season = "Winter"
+							
+							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ["Nelson weekly"]:
+						if "nelwk" in doc["docname"] or "nelson_we" in doc["docname"] or "nw" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							web_title = web_title.rstrip("- Nelson wWeekly").lstrip("Nelson wWeekly-")
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							day = web_title.split(" ")[-3]
+							my_date=dateparser.parse(day+ " " + month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					
+					if issuu in ["Nelson magazine"]:
+						if "nelson_mag" in doc["docname"] or "nls" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+	
 					if issuu in ['Annual report AFL']:
 						if doc["docname"].startswith("aflnz") and "annual" in doc["docname"]:
 							year = web_title.split(" ")[-1]
-
-							
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -591,9 +867,12 @@ def harvester_routine(issuu):
 								web_title=request_title(pdf_url)
 								published=None
 								published_stamp=None
+							web_title = web_title.rstrip(" ")
 							print(web_title)
 							if "," in web_title and "issue" in web_title.lower():
+								issue = issue_dict[web_title.lower().split(" ")[-1]]
 								web_title = web_title.split(",")[0].rstrip(" ")
+
 							if len(web_title.split(" "))==4:
 								year = web_title.split(" ")[-1]
 								season = web_title.split(" ")[-2]
@@ -608,31 +887,54 @@ def harvester_routine(issuu):
 								year = dateparser.parse(published_stamp).strftime("%Y")
 								month = dateparser.parse(published_stamp).strftime("%m")
 								season = reversed_season[month]
+							if season == "Summers":
+								season = "Summer"
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ['The specialist']:
 						if "spec" in doc["docname"]:
+							print(doc["docname"])
 							web_title = request_title(pdf_url)
-							if not "-" in web_title and not "Issue" in web_title:
-								year = web_title.split(" ")[-1]
-								month = web_title.split(" ")[-2]
-							else:
-								issue = web_title.split(" ")[-1]
-								year = web_title.split("-")[0].rstrip(" ").split(" ")[-1]
-								month = web_title.split("-")[0].rstrip(" ").split(" ")[-2]						
+							print(web_title)
+							title_words = web_title.split(" ")
+							for el in title_words:
+								if el in months_dictionary.keys():
+									month = months_dictionary[el]
+								elif el.isdigit():
+									if len(el)==4:
+										year = str(el)
+									if len(el)<4:
+										issue = str(el)
+							if not month or not year:
+								web_title, published, published_stamp = request_title_date(pdf_url)
+								if not month:
+									month = dateparser.parse(published_stamp).strftime("%m")
+								if not year:
+									year = dateparser.parse(published_stamp).strftime("%Y")
+
+							print(issue,month, year)
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ['Inspect - industrial and logistics']:
 						if "inspect" in doc["docname"]:
 							print(doc["docname"])
-							web_title, published, published_stamp = request_title_date(pdf_url)
+							web_title = request_title(pdf_url)
+							title_list = web_title.split(" ")
+							new_web_title=""
+							for el in title_list:
+								if not el in ["Inspect", "inspect"]:
+									new_web_title+=el
+									new_web_title+= " "
+							web_title = new_web_title.rstrip(" ")
 							print(web_title)
-							year = dateparser.parse(published_stamp).strftime("%Y")
-							issue = web_title.split(" ")[-1].strip("#")
+							year = web_title.split(" ")[-1]
+							# issue = web_title.split(" ")[-1].strip("#")
+							issue = web_title.split(" ")[-2]
 							print(issue)
-							my_date=0
+							print(year)
+							my_date = 0
 						else:
 							others.append(doc["docname"])
 		
@@ -656,53 +958,18 @@ def harvester_routine(issuu):
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
-					if issuu in ['Art Beat Christchurch and Canterbury']:
-							print(doc["docname"])
-							web_title = request_title(pdf_url)
-							print(web_title)
-							# try:
-							year = re.findall(r'\d{4}', web_title)[0].rstrip(" ")
-							print (year)
-							# except:
-							# 	try:
-							# 		year = re.findall(r'\d{4}', doc["docname"])[0]
-							# 	except:
-									# year = "20"+re.findall(r'\d{4}', doc["docname"])[0]
-							other_part = web_title.split(year)[0].rstrip()
-							month = other_part.split(" ")[-1]
-							print(month)
-							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-							print(my_date)
-
-					if issuu in ['War cry']:
-						if "war" in doc["docname"] and "cry" in doc["docname"]:
-							print(doc["docname"])
-							web_title = request_title(pdf_url)
-							print(web_title)
-							year = web_title.split(" ")[2]
-							month = web_title.split(" ")[1]
-							day = web_title.split(" ")[0]
-							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-						else:
-							others.append(doc["docname"])
+					
 					if issuu in ['New Zealand cameratalk']:
 						if "ct" in doc["docname"]:
 							web_title = request_title(pdf_url)
 							print(web_title)
-							try:
-								year = re.findall(r'\d{4}', web_title)[0].rstrip(" ")
-								month = web_title.split(" ")[-2]
-
-							except Exception as e:
-								print(str(e))
-								year = re.findall(r'\d{4}', doc["docname"])[0].rstrip(" ")
-								month = web_title.split(" ")[-1]
-							if "/" in month:
-								month = month.split("/")[0]
-							if "-" in month:
-								month = month.split("-")[0]
-							if  "_" in month:
-								month=month.split("_")[0]
+							year = web_title.split(" ")[-1]
+							if "-" in web_title:
+								month = web_title.split("-")[-1].strip(" ").rstrip(year)
+							else:
+								month = web_title.splti(" ")[-2]
+								
+							
 							print(month)
 							print(year)
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
@@ -714,12 +981,14 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
-							year = web_title.split("-")[-1]						
+							year = web_title.split("-")[-1]
+							if "/"	in year:
+								year = year.split("/")[-1]
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ["The Learning Connexions graduation"]:
-						if "grad" in doc["docname"]:
+						if "grad" in doc["docname"] and "book" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -805,7 +1074,7 @@ def harvester_routine(issuu):
 						else:
 							others.append(doc["docname"])
 					if issuu in ['Coast and country news']:
-						if doc["docname"].startswith("c"):
+						if doc["docname"].startswith("c") and not "field" in  doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -842,18 +1111,12 @@ def harvester_routine(issuu):
 						if "cityscape" in doc["docname"]:
 							print(doc["docname"])
 							print(pdf_url)
-							try:
-								web_title = request_title(pdf_url)
-								print(web_title)
-								year = web_title.split(" ")[-1]
-								season = web_title.split(" ")[-2]
-								if "/" in year:
-									year = year.split("/")[-1]
-								if len(year)==2:
-									year = "20"+year
-								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-							except Exception as e:
-								print(str(e))
+			
+							year = doc["docname"].split("-")[-1]
+							season = doc["docname"].split("-")[-2].capitalize()
+							
+							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+	
 						else:
 							others.append(doc["docname"])
 					if issuu in ["Hort news"]:
@@ -861,10 +1124,13 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
+							try:
+								issue = re.findall(r'\d{2}', doc["docname"])[0]
+							except:
+								print("could not grab issue")
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
-							day = web_title.split(" ")[-3]
-							my_date=dateparser.parse(day+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ["Getting the basics right"]:
@@ -894,8 +1160,9 @@ def harvester_routine(issuu):
 							my_date=dateparser.parse(day+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
+
 					if issuu in ['Rural news']:
-						if doc["docname"].startswith("rn"):
+						if doc["docname"].startswith("rn") and not "_sth" in doc["docname"]:
 							print(doc["docname"])
 							try:
 								issue = re.findall(r'\d{3}', doc["docname"])[0]
@@ -903,6 +1170,7 @@ def harvester_routine(issuu):
 								pass
 							web_title = request_title(pdf_url)
 							print(web_title)
+							web_title = web_title.rstrip(" North Island")
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							day = web_title.split(" ")[-3]
@@ -913,7 +1181,8 @@ def harvester_routine(issuu):
 						if "navytoday" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
-							web_title = web_title.split("-")[-1]
+							print(web_title)
+							web_title = web_title.split("-")[-1].lstrip(" ")
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							issue = web_title.split(",")[0].split(" ")[1]
@@ -942,11 +1211,31 @@ def harvester_routine(issuu):
 					if issuu in ['Whenua Parininihi Ki Waitotara magazine']:
 						if "whenua" in doc["docname"]:
 							print(doc["docname"])
-							web_title,published,published_stamp = request_title(pdf_url)
+							web_title = request_title(pdf_url)
 							print(web_title)
 							issue = web_title.split(" ")[-1]
 							year = dt.now().strftime("%Y")
 							my_date = 0
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Annual report Parininihi']:
+						if doc["docname"].startswith("pkw") and "annual" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year= re.findall(r'\d{4}', web_title)[0].rstrip(" ")
+							
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Annual report Te Korowai'] :
+						if doc["docname"].startswith("te_ko") or doc["docname"].startswith("tk") and "annual" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year= re.findall(r'\d{4}', web_title)[0].rstrip(" ")
+							
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ['Hooked up']:
@@ -1028,7 +1317,7 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 					if issuu in ['Bunnings New Zealand']:
 						print(doc["docname"])
-						if "nz" in doc["docname"] and not "outdoor" in doc["docname"] and not "au" in doc["docname"]:
+						if "nz" in doc["docname"] and not "outdoor" in doc["docname"] and not "au_" in doc["docname"]:
 							web_title = request_title(pdf_url)
 							year = web_title.split(" ")[-1]
 							season_month = web_title.split(" ")[-2]
@@ -1039,13 +1328,11 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 					if issuu in ["Massive"]:
 							print(doc["docname"])
-							web_title, published, published_stamp = request_title_date(pdf_url)
+							web_title = request_title(pdf_url)
 							print(web_title)
-							day = dateparser.parse(published_stamp).strftime("%d")
-							month = dateparser.parse(published_stamp).strftime("%B")
 							issue  = web_title.split(" ")[-2]
 							year = web_title.split(" ")[-1]
-							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							# my_date=dateparser.parse("01 01" +year, settings ={'DATE_ORDER': 'DMY'})
 
 					if issuu in ['Builders & contractors']:
 						if "b_c" in doc["docname"] or "bc" in doc["docname"]  or "builder" in doc["docname"] or "constructor" in doc["docname"]:
@@ -1118,18 +1405,30 @@ def harvester_routine(issuu):
 						# else:
 						# 	others.append(doc["docname"])
 					if issuu in ['Hibiscus Matters']:
+						print(doc["docname"])
 						if "hibiscus" in doc["docname"] or "hm" in doc["docname"]:
 							web_title = request_title(pdf_url)
-							month = web_title.split(" ")[3]
-							day = web_title.split(" ")[2]
-							if "_" in  web_title:
-								year = web_title.split(" ")[-3].strip("_")
-
-								issue = web_title.split(" ")[-1]
-							elif "-" in web_title:
-								year = web_title.split(" ")[5]
-								number = web_title.split(" ")[-1]
+							print(web_title)
+							month = web_title.split(" ")[-2]
+							day = web_title.split(" ")[-3]
+							print(day)
+							if "_" in day:
+								day_issue=str(day)
+								day=day_issue.split("_")[-1]
+								issue=day_issue.split("_")[0]
+							else:
+								issue = web_title.split(" ")[-4]
+							year=web_title.split(" ")[-1]
+							# 	year = web_title.split(" ")[-3].strip("_")
+							# 	issue = web_title.split(" ")[-1]
+							# if "_" in  web_title:
+							# 	year = web_title.split(" ")[-3].strip("_")
+							# 	issue = web_title.split(" ")[-1]
+							# elif "-" in web_title:
+							# 	year = web_title.split(" ")[5]
+							# 	number = web_title.split(" ")[-1]
 					# 		season = web_title.split(" ")[-2]
+							print(day, month, year)
 							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -1147,11 +1446,8 @@ def harvester_routine(issuu):
 							if "/" in my_monthes:
 								monthes = my_monthes.strip("()").split("/")
 							else:
-								my_monthes = " ".join(web_title.split(" ")[-2:])
-								monthes = my_monthes.strip("()").split("/")
-
+								monthes = [my_monthes]
 							print(monthes)
-							print(months_dictionary)
 							for el in monthes:
 								print(el)
 								if el in months_dictionary:
@@ -1161,6 +1457,8 @@ def harvester_routine(issuu):
 							print(issue)
 							my_design = description_maker.make_description(None, None, issue, year, monthes, None)
 							print(my_design)
+							if doc["docname"] == "ram_issue_6_fa_17a4381b0e837b":
+								month = "August"
 
 						# 	season = web_title.split(" ")[-2]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
@@ -1237,6 +1535,8 @@ def harvester_routine(issuu):
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							my_date=dateparser.parse("01 "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 							
 					if issuu in ['FMCG business']:
 						if "fmcg" in doc["docname"]:
@@ -1246,6 +1546,8 @@ def harvester_routine(issuu):
 							if "-" in month:
 								month = month.split("-")[0]
 							my_date=dateparser.parse("01 "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 					if issuu in ['Hospitality business']:
 						if "hospitality_business" in doc["docname"]:
 							web_title = request_title(pdf_url)
@@ -1258,6 +1560,8 @@ def harvester_routine(issuu):
 								print("here")
 								month = short_month_dict[month.upper()]
 							my_date=dateparser.parse("01 "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 
 
@@ -1267,6 +1571,8 @@ def harvester_routine(issuu):
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							my_date=dateparser.parse("01 "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in  ['The G.B. weekly']:
 						web_title = request_title(pdf_url)
@@ -1286,35 +1592,50 @@ def harvester_routine(issuu):
 						year = web_title.split(" ")[-1]
 						season = web_title.split(" ")[-2]
 						my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-					if issuu in ['Canterbury farming']:
-						web_title = request_title(pdf_url)
-						year = web_title.split(" ")[-1]
-						month = web_title.split(" ")[-2]
-						my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 					if issuu in ['Destination Devonport']:
 						if "destin" in doc["docname"] or "dd" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							year = web_title[-4:]
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
-
-					# if issuu in ['Construction excellence awards']:
-					# 	print(doc["docname"])
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Construction excellence awards Connexis']:
+						if "" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 					if  issuu in ["The Devonport Flagstaff"]:
 						if "flag" in doc["docname"] or ("rang" in doc["docname"] and "5nov" in doc["docname"]):
-							# print(doc["docname"])
+							print(doc["docname"])
+
 							web_title = request_title(pdf_url)
+							print(web_title)
+							web_title=web_title.lstrip("Devonport Flagstaff")
 							day = web_title.split(" ")[0]
 							month = web_title.split(" ")[1]
 							year = web_title.split(" ")[2]
 							my_date=dateparser.parse(day+" "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 					if issuu in ["The Rangitoto Observer"]:
 						if "rangitoto" in doc["docname"]:
+							print(doc["docname"])
 							web_title = request_title(pdf_url)
+							web_title = web_title.lstrip("Rangitoto Observer")
 							day = web_title.split(" ")[0]
 							month = web_title.split(" ")[1]
 							year = web_title.split(" ")[2]
 							my_date=dateparser.parse(day+" "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+							print(my_date)
+						else:
+							others.append(doc["docname"])
 					if issuu in ["Concrete"]:
 						web_title, published, published_stamp = request_title_date(pdf_url)
 						year = dateparser.parse(published_stamp).strftime("%Y")
@@ -1337,6 +1658,19 @@ def harvester_routine(issuu):
 							# print(web_title, published, published_stamp)
 							issue = web_title.split("#")[-1].split(" ")[0]
 							my_date=dateparser.parse(published_stamp, settings ={'DATE_ORDER': 'YMD'})
+						else:
+							others.append(doc["docname"])
+
+					if issuu in ['Love your workspace Christchurch']:
+						print(doc["docname"])
+						if "christ" in doc["docname"] and "workspace" in doc["docname"]:
+							web_title = request_title(pdf_url)
+							if "issue" in doc["docname"]:
+								issue = doc["docname"].split("_")[-2].lstrip("issue")
+							year = web_title.split(" ")[-1]
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Update Canterbury Employers"]:
 						web_title, published,published_stamp = request_title_date(pdf_url)
@@ -1349,18 +1683,31 @@ def harvester_routine(issuu):
 					if issuu in ["The sun Blenheim Marlborough"]:
 						web_title = request_title(pdf_url)
 						web_title = web_title.replace("The Blenheim Sun","").lstrip(" ").rstrip(" ")
+						print(web_title, doc["docname"])
+						print(web_title.split(" "))
 						# docdate = re.findall(r'\d{6}', doc["docname"])[0]
 						# year = "20"+docdate[:2]
 						# month = docdate[2:4]
 						# day =docdate[4:]
 						# if year == "2021":
 						# 	year="2022"
-						month = web_title.split(" ")[1]
-						year =web_title.split(" ")[-1]
-						month = web_title.split(" ")[1]
-						day = web_title.split(" ")[0]
+						try:
+							month = web_title.split(" ")[1]
+							year =web_title.split(" ")[-1]
+							day = web_title.split(" ")[0]
+							if not year.isdigit():
+								web_title, published, published_stamp = request_title_date(pdf_url)
+								year = dateparser.parse(published_stamp).strftime("%Y")
+							else:
+								if len(year)>4:
+									year="20"+year[:2]
+							print(year,month,day)
+						except:
+							web_title, published, published_stamp = request_title_date(pdf_url)
+							year = dateparser.parse(published_stamp).strftime("%Y")
+							month = dateparser.parse(published_stamp).strftime("%B")
+							day =  dateparser.parse(published_stamp).strftime("%d")
 						my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-					
 					if issuu in ['The bay waka']:
 						if not "elections" in doc["docname"]:
 							web_title = request_title(pdf_url)
@@ -1371,6 +1718,8 @@ def harvester_routine(issuu):
 							month_short = re.findall(r'[A-Z]{3}',web_title_cut)[0]
 							month = short_month_dict[month_short]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ['FYI']:
 						if "fyi" in doc["docname"]:
@@ -1378,8 +1727,21 @@ def harvester_routine(issuu):
 							month = web_title.split(" ")[1]
 							year =web_title.split(" ")[-1]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['Drinksbiz']:
+						if doc["docname"].startswith("db"):
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							month = web_title.split(" ")[-3]
+							year =web_title.split(" ")[-1]
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ['Better breathing']:
+						print(doc["docname"])
 						if not "report" in doc["docname"]:
 							web_title = request_title(pdf_url)
 							season = web_title.split(" ")[-2]
@@ -1388,14 +1750,19 @@ def harvester_routine(issuu):
 					if issuu in ['ATC']:
 						if "atc" in doc["docname"]:
 							web_title = request_title(pdf_url)
+							print(web_title)          
 							year = re.findall(r'\d{4}', doc["docname"])[0]
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 					if issuu in ['Annual report']:
 						if "awhi" in doc["docname"]:
 							if "report" in doc["docname"]:
 								year = doc["docname"].split("_")[-1]
 								month = dt.now().strftime("%B")
 								my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Awhi"]:
 						print(doc["docname"])
@@ -1407,37 +1774,68 @@ def harvester_routine(issuu):
 								my_date=0
 								year = dt.now().strftime("%Y")
 								my_design = description_maker.make_description(None, None, issue, None, None, None)
+							else:
+								others.append(doc["docname"])
+						else:
+							others.append(doc["docname"])
 							
 					if issuu in ["Schoolnews"]:
-						if "snnz" in doc["docname"]:
-							web_title = request_title(pdf_url)
-							web_title = web_title.replace(" - "," ").replace("-"," ").replace("  "," ").lower()
-							year = web_title.split(' ')[-1]
-							term = web_title.split(" ")[-2].lower().lstrip("term ").rstrip(", ")
-							my_date=dateparser.parse("01 "+ term_dict[term] + " "+year, settings ={'DATE_ORDER': 'DMY'})
-	
-					if issuu in ["Food New Zealand"]:
+						if "snnz" in doc["docname"] and not "eotc" in doc["docname"] and not "media" in doc["docname"]:
 							print(doc["docname"])
-						# if doc["docname"].startswith("fnz") or doc["docname"].startswith("food"):
 							web_title = request_title(pdf_url)
 							print(web_title)
-							if not "Media"  in web_title:
-								if "." in web_title:
-									year = re.findall(r" (.*?)\.",web_title)[0].split(" ")[-1]
-									month = re.findall(r", (.*?)/",web_title)[0]
-								else:
+							web_title = web_title.replace(" - "," ").replace("-"," ").replace(","," ").replace("  "," ").lower()
+							year = web_title.split(' ')[-1]
+							term = web_title.split(" ")[-2]
+							my_date=dateparser.parse("01 "+ term_dict[term] + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+	
+					if issuu in ["Food New Zealand"]:
+						print(doc["docname"])
+						if doc["docname"].startswith("fnz") or doc["docname"].startswith("food"):
+							web_title = request_title(pdf_url)
+							print(web_title)
+							web_title_list = web_title.split(" ")
+							if not "Media"  in web_title  in web_title:
+
+								# if "." in web_title:
+								# 	year = re.findall(r" (.*?)\.",web_title)[0].split(" ")[-1]
+								print(web_title_list)
+								for el in web_title_list:
+									if "/" in el:
+										month = str(el)
+								if "/" in month:
+									month = month.split("/")[0]
+								try:
 									year = re.findall(r'\d{4}', web_title)[0]
-									month = web_title.split(year)[0].split(" ")[-1]
+								except:
+									try:
+										web_title, published, published_stamp = request_title_date(pdf_url)
+										year = dateparser.parse(published_stamp).strftime("%Y")
+									except:
+										year = dt.now().strftime("%Y")
+
+
+								# 	month = web_title.split(year)[0].split(" ")[-1]
+								print(month)
+								print(year)
+
 								my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
 					if issuu in ["Te karaka"]:
 						if "karaka" in doc["docname"]:
 							# print(doc["docname"])
 							web_title = request_title(pdf_url)
-							year = dt.now().strftime("%Y")
-							season = reversed_season[dt.now().strftime("%m")]
+							# year = dt.now().strftime("%Y")
+							# season = reversed_season[dt.now().strftime("%m")]
+							number= web_title.split("|")[-1].lstrip(" ")
+							year= web_title.split('|')[0].rstrip(" ").split(" ")[-1]
+							season = web_title.split("/")[-1].split(" ")[0]
 							# print(year)
 							# print(season)
 							my_date=dateparser.parse("01 "+ seas_dict[season] + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 							# quit()
 					if issuu in ["Human resources"]:
 						# print(doc["docname"])
@@ -1453,7 +1851,7 @@ def harvester_routine(issuu):
 							season = web_title.split(" - ")[0].split(" ")[-1]
 							year = dt.now().strftime("%Y")
 						volume = re.findall(r"Vol (.*?) ",seas_year_vol_num)[0].rstrip(".,: ")
-						number = seas_year_vol_num.split(" ")[-1].rstrip(")").lstrip("No.")
+						number = seas_year_vol_num.split("No")[-1].split(")")[0].lstrip(".").lstrip(" ")
 						my_date=dateparser.parse("01 "+ seas_dict[season] + " "+year, settings ={'DATE_ORDER': 'DMY'})
 					
 					if issuu in ["Asset"]:
@@ -1470,7 +1868,7 @@ def harvester_routine(issuu):
 						elif len((issue_number_month).split(" "))==2:
 							if issue_number_month.split(" ")[0].capitalize() in months:
 								month = issue_number_month.split(" ")[0].capitalize()
-							elif issue_number_month.split(" ")[0].isdigit:
+							elif issue_number_month.split(" ")[0].isdigit():
 								issue_number = issue_number_month.split(" ")[0]
 								if int(issue_number) > 4:
 									issue = issue_number
@@ -1478,8 +1876,10 @@ def harvester_routine(issuu):
 									number = issue_number
 						print(month, year, issue,number)
 						if month:
-							print("here")
-							my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+							if month in seas_dict:
+								my_date=dateparser.parse("01 "+ seas_dict[month] + " "+year, settings ={'DATE_ORDER': 'DMY'})
+							else:
+								my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							print("here2")
 							my_date = 0
@@ -1489,8 +1889,6 @@ def harvester_routine(issuu):
 
 
 					if issuu in ["Forest and bird"]:
-						
-						
 						if "f_b_" in doc["docname"]: 
 							web_title = request_title(pdf_url)
 							if not " kit " in web_title:
@@ -1500,31 +1898,50 @@ def harvester_routine(issuu):
 								# print(web_title)
 								my_date=dateparser.parse("01 "+ seas_dict[season] + " "+year, settings ={'DATE_ORDER': 'DMY'})
 								flag_ses = True
+							else:
+								others.append(doc["docname"])
+						else:
+							others.append(doc["docname"])								
 
 					if issuu  in ["New Zealand winegrower official journal"]:
-						# print(doc["docname"])
+						print(doc["docname"])
 						if "winegrower" in doc["docname"] or "wg" in doc["docname"]:
 							web_title = request_title(pdf_url) 
+							print(web_title)
 							year = web_title.split(" ")[-1]
 							monthes = web_title.split(" ")[-2]
 							if "/" in monthes:
 								month = monthes.split("/")[0]
+							elif "-" in monthes:
+								month = monthes.split("-")[0]
 							else:
 								month = str(monthes)
 							my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Army news"]:
 
 						if "an" in doc["docname"] or "armynews" in doc["docname"]:
-							issue = re.findall('\d{3}', doc["docname"])[0]
+							
 							web_title = request_title(pdf_url)
+							print(web_title)
+							print(doc["docname"])
+							print("here!!!")
+							try:
+								issue = re.findall('\d{3}', doc["docname"])[0]
+							except:
+								print("no isue found")
 							if "army news" in web_title.lower():
+								print(web_title, doc["docname"])
 								year = web_title.split(" ")[-1]
 								month = web_title.split(" ")[-2]
 								issue = web_title.split(" ")[-3].rstrip(",")
 								if "/" in month:
 									month = month.split("/")[0]
 								my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Air force news"]:
 						if "airforcenews" in doc["docname"] or "afn" in doc['docname']:
@@ -1535,6 +1952,8 @@ def harvester_routine(issuu):
 							print(year)
 							print(month)
 							my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 
 
@@ -1562,42 +1981,54 @@ def harvester_routine(issuu):
 						
 					if issuu in ["Family care"]:
 						print(doc["docname"])
-						# web_title, published, published_stamp = request_title_date(pdf_url)
-						# year = dateparser.parse(published_stamp).strftime("%Y")
-						# month = dateparser.parse(published_stamp).strftime("%B")
-						# season = reversed_season[month]
-						# my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						print(web_title)
+						web_title, published, published_stamp = request_title_date(pdf_url)
+						year = dateparser.parse(published_stamp).strftime("%Y")
+						month = dateparser.parse(published_stamp).strftime("%B")
+						season = reversed_season[month]
+						if "Issue" in web_title:
+							if ":" in web_title:
+								issue = web_title.split(":")[0].split(" ")[-1]
+							else:
+								issue = web_title.split(" ")[-1] 
+						my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
 
 					if issuu in ["Down in Edin magazine"]:
 						# print(doc["docname"])
-						issue = doc["docname"].lstrip("downinedinissuu")
+						if "downinedinissue" in doc["docname"]:
+							issue = doc["docname"].lstrip("downinedinissue")
+						elif "diemissue" in doc["docname"]:
+							issue = doc["docname"].lstrip("diemissue")
+
 						web_title, published, published_stamp = request_title_date(pdf_url)
 						year = dateparser.parse(published_stamp).strftime("%Y")
 						month = dateparser.parse(published_stamp).strftime("%B")
 						my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
 
-					if issuu in ["Better breathing"]:# {'			publisher': 'Allied Press Ltd', 'web_title': 'Explore Dunedin \xa0', 'mms_id': '9919061063502836', 'holding_id': '22366692760002836', 'po_line': 'POL-167410', 'pattern': '', 'days': '', 'url': 'https://issuu.com/alliedpress/docs/exploredunedin2020', 'username': 'exploredunedin2020'},"]
-
-						web_title = request_title(pdf_url)
-						year = web_title.split(" ")[-1]
-						season = web_title.split(" ")[-2]
-						my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-
+					if issuu in ["Better breathing"]:
+						if not "annual" in doc["docname"]:
+							web_title = request_title(pdf_url)
+							year = web_title.split(" ")[-1]
+							season = web_title.split(" ")[-2]
+							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 					if issuu in ['Active retirees']:
-
 						#if "active" in doc["docname"] and "retirees" in doc["docname"] and not doc["docname"] in my_docnames:
 							print(doc["docname"])
 							# print(printdf_url)
 							web_title = request_title(pdf_url)
-							#print(web_title)
+							print(web_title)
 							if "New Zealand" in web_title:
 								#print(web_title)
 								#print(doc["docname"])
-								title = web_title.replace("Active Retirees New Zealand Magazine","").rstrip(" ")
+								title = web_title.replace("Active Retirees New Zealand Magazine","").replace("Active Retirees Magazine - New Zealand","").replace("Active Retirees ","").replace(" - New Zealand","").rstrip(" ")
 								#year= re.findall('\d{4}', title)[0].rstrip(" ")
 								# print(title)
 								year = title.split(" ")[-1]
-								# print(year)
+								if not year.isdigit():
+									web_title,published,published_stamp = request_title_date(pdf_url)
+									year = dateparser.parse(published_stamp).strftime("%Y")
 								season = title.split(" ")[0]
 								month_string = seas_dict[season]
 								month = months_dictionary[month_string]
@@ -1607,23 +2038,39 @@ def harvester_routine(issuu):
 								# print(my_date)
 					if issuu in ["Explore Dunedin"]:# {'publisher': 'Allied Press Ltd', 'web_title': 'Explore Dunedin \xa0', 'mms_id': '9919061063502836', 'holding_id': '22366692760002836', 'po_line': 'POL-167410', 'pattern': '', 'days': '', 'url': 'https://issuu.com/alliedpress/docs/exploredunedin2020', 'username': 'exploredunedin2020'},"]
 						if "dunedin" in doc["docname"]:
+							print(doc["docname"])
 							web_title,published,published_stamp = request_title_date(pdf_url)
+							print(web_title)
 							if len(web_title.split(" "))==4:
 								year = web_title.split(" ")[-1]
 								season = web_title.split(" ")[-2]
-							if web_title.split(" ")==2:
-								year = dateparser.parse(published_stamp).strftime("%Y")
-								month = dateparser.parse(published_stamp).strftime("%B")
+							if len(web_title.split(" "))==2 or len(web_title.split(" "))==3:
+								year = web_title.split(" ")[-1]
+								month = dateparser.parse(published_stamp).strftime("%m")
 								season = reversed_season[month]
+
+
 							if "-" in year:
 								year = year.split("-")[0]
+
 							my_date=dateparser.parse("01 "+ seas_dict[season] + " "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Ponsonby news"]:
 						if "ponsonby_news_" in doc["docname"] and not doc["docname"] in my_docnames:
-							web_date = doc["docname"].replace("ponsonby_news_","").replace("_website","").replace("_"," ")
-							my_date = dateparser.parse("01 "+web_date, settings={'DATE_ORDER': 'DMY'})
+							web_title=request_title(pdf_url)
+							print(doc["docname"])
+							print(web_title)
+							if doc["docname"] == "ponsonby_news_august_fri_29_july_final":
+								my_date = dateparser.parse("01 August 2022", settings={'DATE_ORDER': 'DMY'})
+							else:
+								web_date = doc["docname"].replace("ponsonby_news_","").replace("_website","").replace("_web","").replace("_final","").replace("_"," ")
+								print(web_date)
+								my_date = dateparser.parse("01 "+web_date, settings={'DATE_ORDER': 'DMY'})
 							print(my_date)
+						else:
+							others.append(doc["docname"])
 		
 					if issuu in ["Taranaki farming lifestyles"]:
 						if "tfl" in doc["docname"]:
@@ -1631,14 +2078,19 @@ def harvester_routine(issuu):
 							if not my_date:
 								web_title = request_title(pdf_url)
 								my_date=dateparser.parse(web_title.replace("Taranaki farming lifestyles, ",""))
-
+						else:
+							others.append(doc["docname"])
 			
 					if issuu in ["Hawke's Bay farming lifestyles"]:
 						if "hbfl" in doc["docname"]:
-							my_date = dateparser.parse(doc["docname"].replace("hbfl_","01"),settings={'DATE_ORDER': 'DMY'})
-							if not my_date:
-								web_title = request_title(pdf_url)
-								my_date=dateparser.parse(web_title.replace("Hawke's Bay farming lifestyles ",""))
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
 
 					if issuu in ["Northern farming lifestyles"]:
 						if "nfl" in doc["docname"]:
@@ -1646,7 +2098,8 @@ def harvester_routine(issuu):
 							if not my_date:
 								web_title = request_title(pdf_url)
 								my_date=dateparser.parse(web_title.replace("Northern Farming Lifestyles, ",""))
-
+						else:
+							others.append(doc["docname"])
 
 
 					if issuu in ["Waikato farming lifestyles"]:
@@ -1655,7 +2108,8 @@ def harvester_routine(issuu):
 							if not my_date:
 								web_title = request_title(pdf_url)
 								my_date=dateparser.parse(web_title.replace("Waikato farming lifestyles ",""))
-
+						else:
+							others.append(doc["docname"])
 			
 					if issuu in ["Hawke's Bay farming lifestyles"]:
 						if "hbfl" in doc["docname"]:
@@ -1663,7 +2117,8 @@ def harvester_routine(issuu):
 							if not my_date:
 								web_title = request_title(pdf_url)
 								my_date=dateparser.parse(web_title.replace("Hawke's Bay farming lifestyles ",""))
-
+						else:
+							others.append(doc["docname"])
 					if issuu in ["Northern farming lifestyles"]:
 						if "nfl" in doc["docname"]:
 							my_date = dateparser.parse(doc["docname"].replace("nfl_","01"),settings={'DATE_ORDER': 'DMY'})
@@ -1673,30 +2128,40 @@ def harvester_routine(issuu):
 
 					if issuu in ["The weekend lifestyler"]:
 						if "wl" in doc["docname"]:
+							print(doc["docname"])
+
 							my_date = dateparser.parse(doc["docname"].replace("wl_",""),settings={'DATE_ORDER': 'DMY'})
 							if not my_date:
 								web_title = request_title(pdf_url)
+								print(web_title)
 								my_date=dateparser.parse(web_title.replace("The Weekend Lifestyler ",""))
+						else:
+							others.append(doc["docname"])								
 					if issuu in ["Manawatu farming lifestyles"]:
 						if "mfl" in doc["docname"]:
 							my_date = dateparser.parse(doc["docname"].replace("mfl_","01"),settings={'DATE_ORDER': 'DMY'})
 							if not my_date:
 								web_title = request_title(pdf_url)
 								my_date=dateparser.parse(web_title.replace("Manawatu Farming Lifestyles, ",""))
+						else:
+							others.append(doc["docname"])
 					if issuu in ["Education Gazette"]:
 						#print(doc["docname"])
-						r = requests.get(pdf_url)
-						my_soup = bs(r.text, "lxml")
-						web_title = my_soup.find_all("h1")[0].text
-						print(web_title)
+						web_title, published, published_stamp = request_title_date(pdf_url)
+						year = dateparser.parse(published_stamp).strftime("%Y")
+						r = requests.get(pdf_url, verify=False)
 						my_vol_num = re.sub("[A-Za-z]", "", web_title).rstrip(" ").lstrip(' ')
 						try:
+
 							volume = my_vol_num.split(".")[0]
 							number = my_vol_num.split('.')[1]
 							if not number.isdigit() and " " in number:
 								number = number.split(" ")[0]
-							my_date=0
-							my_design = description_maker.make_description(volume, number, None, None, None, None)
+							print(volume)
+							print(number)
+							my_design = description_maker.make_description(volume, number, None, year, None, None)
+							my_date =0
+							#my_date=dateparser.parse("01 "+ "01" + " "+year, settings ={'DATE_ORDER': 'DMY'})
 						except:
 							with open('to_process_manually.txt',"a") as f:
 								f.write(issuu+"|"+web_title+pdf_url)
@@ -1706,21 +2171,29 @@ def harvester_routine(issuu):
 						#print(my_date)	
 					if issuu in ["Waimea Weekly"]:
 						if "ww" in doc["docname"] and not "rural" in doc["docname"]and not "0219" in doc["docname"]:
-							my_date = dateparser.parse(doc["docname"].replace("ww","").rstrip("_-"),settings={'DATE_ORDER': 'MDY'})
-							if not my_date:
 								web_title = request_title(pdf_url)
-								if year_now in web_title or last_year in web_title:
+								try:
 									my_date=dateparser.parse(web_title)
+								except:
+									quit()
 								# if not my_date:
 								# 	print(web_title)
 								# 	quit()
+						else:
+							others.append(doc["docname"])
 					if issuu in ["DressageNZ bulletin"]:
-						#print(doc["docname"])
+						# print(doc["docname"])
 						web_title = request_title(pdf_url)
+						web_title = web_title.rstrip(" ")
 						year = web_title.split(" ")[-1]
 						month = web_title.split(" ")[-2]
+						issue = web_title.split(" ")[-3]
 						if "/" in month:
-							month =month.split("/")[-1]						
+							month =month.split("/")[-1]	
+						if "issue_59_april_may_2022" in doc["docname"]:
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-3]
+							issue = web_title.split(" ")[-4]
 						my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						#print(web_title)
 								# print(my_pub)
@@ -1730,22 +2203,62 @@ def harvester_routine(issuu):
 						#print('Please wait, "Weekend sun" takes more time....')
 						if doc["docname"].startswith("ws") and (year_now[2:] in doc["docname"] or last_year[2:] in doc["docname"]):
 								web_title = request_title(pdf_url)
+								print(doc["docname"])
+								print(web_title)
+
 								if "the weekend sun" in web_title.lower() and (year_now in web_title or last_year in web_title):
-									my_date = dateparser.parse(web_title.lower().replace("the weekend sun","").lstrip('- '))
+									web_title = web_title.lower().replace("the weekend sun","").lstrip('- ')
+									year = web_title.split(" ")[-1]
+									month = web_title.split(" ")[-2]
+									day = web_title.split(" ")[-3]
+									if  month == "septemnber":
+										month = "September"
+									print(year, month, day)
+									my_date = dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 								# if "ws" in web_title.lower():
 								# 	print(pdf_url)
+						else:
+							others.append(doc["docname"])
+							
 					if issuu in ["Kaipara lifestyler"]:
-						if "kl" in doc["docname"]:
-							my_date = dateparser.parse(doc["docname"].replace("kl_",""),settings={'DATE_ORDER': 'MDY'})
+						if "kl" in doc["docname"] or doc["docname"].startswith("sl"):
+							my_date = dateparser.parse(doc["docname"].replace("kl_","").replace("sl_",""),settings={'DATE_ORDER': 'MDY'})
 							if not my_date:
 								web_title = request_title(pdf_url)
-								my_date=dateparser.parse(web_title.replace("Kaipara Lifestyler, ",""))
+								my_date=dateparser.parse(web_title.replace("Kaipara Lifestyler, ","").replace("Summer Lifestyler ",""))
+						else:
+							others.append(doc["docname"])
+
+					if issuu in ['War cry']:
+						if "war" in doc["docname"] and "cry" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[2]
+							month = web_title.split(" ")[1]
+							day = web_title.split(" ")[0]
+							if not month in months_dictionary.keys():
+								year = web_title.split(" ")[1]
+								month = web_title.split(" ")[0]
+								day = "01"
+							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+
 					if issuu in ["The Guardian Motueka, Tasman and Golden Bay"]:
 						#print("here")
 						my_date = dateparser.parse(doc["docname"],settings={'DATE_ORDER': 'DMY'})
 						if not my_date:
 							web_title = request_title(pdf_url)
-							my_date =dateparser.parse(web_title,settings={'DATE_ORDER': 'DMY'})
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							day = web_title.split(" ")[0]
+							try:
+								my_date =dateparser.parse(web_title,settings={'DATE_ORDER': 'DMY'})
+							except:
+								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+
 					if issuu in ["The Geraldine news"]:
 						web_title = request_title(pdf_url)
 						year = web_title.split(".")[-1]
@@ -1758,9 +2271,11 @@ def harvester_routine(issuu):
 						month = month.split("-")[0]
 					if "/" in month:
 						month = month.split("/")[0]
-
-				if my_date or my_date==0:
-					# print(my_date)
+				if not my_date and my_date!=0:
+					print("Check date parsing")
+					quit()
+				elif my_date != "None" or my_date==0:
+					#print(my_date)
 					if my_date!=0:
 						logger.debug(my_date.strftime("%d %B %Y"))
 						try:
@@ -1768,11 +2283,14 @@ def harvester_routine(issuu):
 
 
 						except OverflowError:
+							print("here!!!!!!!")
+							quit()
 							overflow_flag = True
-						print(alma_last_representation_list[0])
-						print(my_date_stamp)
-						print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu=="Farmers weekly":
+					#	print(alma_last_representation_list[0])
+					#	print(my_date_stamp)
+						#print(my_dates)
+						overflow_flag = True
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu in ["Ponsonby news"]:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"]
 								my_dict["url"]=pdf_url
@@ -1788,9 +2306,9 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "Dressage NZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Canterbury farming','Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles",'Art Beat Christchurch and Canterbury',"The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag"]:
+								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "Dressage NZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles","The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag","Education Gazette","Army news","Love your workspace Christchurch","Nelson magazine","Wide Sky",'Regulus',"Irhace","Winepress the official magazine of Wine Marlborough","Drinksbiz",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hort news",'Cruise news','NZsecurity',"Line of defence",'Fire NZ',"Hauraki rail trail guide","War cry","Lizard News"] and my_dict["day"]=="01":
 									my_dict["day"]=None
-								if issuu in ["Explore Dunedin","Family care","Franchise New Zealand","Forest and bird","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"Update Canterbury Employers",'Love your workspace','Destination Devonport','Diabetes wellness','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Annual report Mercury','Interim report Mercury','Annual review taxpayers','Hooked up',"Air chats","RROGA news",'Cityscape Christchurch here and now',"What's hot Christchurch",'Prospectus',"The Learning Connexions graduation","The lampstand",'Summerset scene','Our place','Modern slavery statement',"Principals today","Getting the basics right","What's hot Christchurch","New farm dairies",'Annual report AFL','Northland must do',"The New Zealand mortgage mag"]:
+								if issuu in ["Explore Dunedin","Family care","Franchise New Zealand","Forest and bird","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"Update Canterbury Employers",'Love your workspace','Destination Devonport','Diabetes wellness','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Annual report Mercury','Interim report Mercury','Annual review taxpayers','Hooked up',"Air chats","RROGA news",'Cityscape Christchurch here and now',"What's hot Christchurch",'Prospectus',"The Learning Connexions graduation","The lampstand",'Summerset scene','Our place','Modern slavery statement',"Principals today","Getting the basics right","What's hot Christchurch","New farm dairies",'Annual report AFL','Northland must do',"The New Zealand mortgage mag","DressageNZ bulletin","Massive","Education Gazette","Love your workspace Christchurch",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hauraki rail trail guide"]:
 									my_dict["month"] = None
 								if issuu in ["Asset"]:
 									if not month or number:
@@ -1801,6 +2319,7 @@ def harvester_routine(issuu):
 										my_dict["season"] = reversed_season[month]
 
 					else:
+
 						if my_design not in my_dates:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"]
@@ -1819,33 +2338,37 @@ def harvester_routine(issuu):
 
 								if alma_last_representation_list[0]!=0:
 									if issue:
+
 										print(alma_last_representation_list[2])
 										print(year)
 										print(issue)
 										if not (year > alma_last_representation_list[2]["year"] or (year==alma_last_representation_list[2]["year"] and issue> alma_last_representation_list[2]["issue"]))and issue in ['Build & renovate today',"Awhi",'Inspect - industrial and logistics',"Concrete","Principals today"]:
 											my_dict={}
 									elif  number:
-										if not (year > alma_last_representation_list[2]["year"] or (year==alma_last_representation_list[2]["year"] and number> alma_last_representation_list[2]["number"]))and issue in ['Asset']:
+										if not (year > alma_last_representation_list[2]["year"] or (year==alma_last_representation_list[2]["year"] and number> alma_last_representation_list[2]["number"]))and issue in ['Asset',"Education Gazette"]:
 											my_dict={}
 
-								else:
-									if not issuu in ["Education Gazette"]:
-										my_dict={}
-								# if issue in ['Build & renovate today',"Awhi","Inspect - industrial and logistics"]:
-								# 	print(my_dict)
+								#else:
+									# if not issuu in ["Education Gazette"]:
+									# 	my_dict={}
+								if issue in ['Build & renovate today',"Awhi","Inspect - industrial and logistics"]:
+									print(my_dict)
 
 					if not my_dict in my_dict_list and my_dict !={}:
 							my_dict_list.append(my_dict)
-	print(my_dict_list)
+
+
+
+
 	for el in others:
 		if el not in my_docnames:
-			with open(os.path.join(report_folder, issuu+"_worked_out.txt"),"a") as f:
+			with open(os.path.join(report_folder, issuu+"_worked_out2.txt"),"a") as f:
 				f.write(el)
 				f.write("\n")
 	for i,pub in enumerate(my_dict_list):
 		email_fname = issuu+ ' ' +pub["web_title"].replace(" ","_")
 		flag_to_do = False
-		r=requests.get(pub["url"])
+		r=requests.get(pub["url"], verify=False)
 		if len(re.findall("The publisher chose",r.text)) == 0:
 			if len(os.listdir(temp_folder))!=0:
 				print("files detected")
@@ -1864,22 +2387,21 @@ def harvester_routine(issuu):
 				driver.get(pub["url"])
 			except Exception as e:
 				print(str(e))
-			sleep(20)
-			try:
-				# print("here00")
-				driver.find_element(By.ID,"CybotCookiebotDialogBodyLevelButtonLevelOptinAllowallSelection").click()
-				# <a id="CybotCookiebotDialogBodyButtonAccept" class="CybotCookiebotDialogBodyButton" href="#" tabindex="0" style="padding-left: 12px; padding-right: 12px;" lang="en">Allow all cookies</a>
-				print("here000")
-			except Exception as e:
-				print(str(e))
-				try:				
-					driver.find_element(By.ID,"CybotCookiebotDialogBodyButtonAccept").click()
-				except Exception as e:
-					print(str(e))
-					try:
-						driver.find_element(By.ID,"CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll").click()
-					except Exception as e:
-						print(str(e))
+			# driver.implicitly_wait(10)
+			# try:
+			# 	# print("here00")
+			# 	# <a id="CybotCookiebotDialogBodyButtonAccept" class="CybotCookiebotDialogBodyButton" href="#" tabindex="0" style="padding-left: 12px; padding-right: 12px;" lang="en">Allow all cookies</a>
+			# 	print("here000")
+			# except Exception as e:
+			# 	print(str(e))
+			# 	try:				
+			# 		driver.find_element(By.ID,"CybotCookiebotDialogBodyButtonAccept").click()
+			# 	except Exception as e:
+			# 		print(str(e))
+			# 		try:
+			# 			driver.find_element(By.ID,"CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll").click()
+			# 		except Exception as e:
+			# 			print(str(e))
 
 			sleep(30)
 			# try:	
@@ -1891,15 +2413,16 @@ def harvester_routine(issuu):
 				# <button aria-describedby="download_tooltip" class="sc-1an4lpe-1 jPjQNo" style=""><div aria-hidden="true" class="sc-1an4lpe-0 bQChXH"><svg fill="currentColor" height="24" viewBox="0 0 24 24" width="24" role="img"><path d="M11.8484 15.3864C11.8664 15.4081 11.8894 15.4257 11.9157 15.4378C11.9419 15.4498 11.9708 15.4561 12 15.4561C12.0292 15.4561 12.0581 15.4498 12.0843 15.4378C12.1106 15.4257 12.1336 15.4081 12.1516 15.3864L14.8468 12.1659C14.9455 12.0477 14.8564 11.8727 14.6952 11.8727H12.912V4.18182C12.912 4.08182 12.8254 4 12.7195 4H11.2757C11.1698 4 11.0832 4.08182 11.0832 4.18182V11.8705H9.30481C9.14358 11.8705 9.05455 12.0455 9.15321 12.1636L11.8484 15.3864ZM19.8075 14.5909H18.3636C18.2578 14.5909 18.1711 14.6727 18.1711 14.7727V18.2727H5.82888V14.7727C5.82888 14.6727 5.74225 14.5909 5.63636 14.5909H4.19251C4.08663 14.5909 4 14.6727 4 14.7727V19.2727C4 19.675 4.34412 20 4.77005 20H19.2299C19.6559 20 20 19.675 20 19.2727V14.7727C20 14.6727 19.9134 14.5909 19.8075 14.5909Z"></path></svg></div>Download</button>
 
 				sleep(40)
-				pyautogui.moveTo(720,670)
-				# pyautogui.moveTo(1725,1000)
-				# pyautogui.moveTo(800,500)
-				# pyautogui.moveTo()
-				# pyautogui.move(1,1)
-				pyautogui.click()
-				# sleep(10)
+				# pyautogui.moveTo(720,670)
+				# #pyautogui.moveTo(725,572)#Rhonda's big screen
+				# # pyautogui.moveTo(1725,1000)#big screen save location
+				# # pyautogui.moveTo(800,500)
+				# # pyautogui.moveTo()
+				# # pyautogui.move(1,1)
 				# pyautogui.click()
-				#pyautogui.hotkey('enter')https://issuu.com/deputy_editorhttps://issuu.com/deputy_editor
+				# # sleep(10)
+				# # pyautogui.click()
+				# #pyautogui.hotkey('enter')https://issuu.com/deputy_editorhttps://issuu.com/deputy_editor
 				if len(os.listdir(temp_folder))!=1:
 					sleep(20)
 				if len(os.listdir(temp_folder))!=1:
@@ -1928,13 +2451,24 @@ def harvester_routine(issuu):
 						with open(os.path.join(report_folder,"wrong_key_error.txt"),"a") as f:
 								f.write(pub["docname"])
 								f.write("\n")
-						try:
-							email_subject = "Was not scraped - {} {}".format(issuu,pub["web_title"])
-							email_message = "Issuu publications not enabled - key error - {} {} {} {}".format(issuu, issuu_dict[issuu]["mms_id"],pub["url"],pub["web_title"])
-							email_maker = Gen_Emails()
-							email_maker.EmailGen(email_address_line, email_subject, email_message,  email_fname, to_send_email)
-						except Exception as e:
-							print(str(e))
+						print(sent_emails)
+						if not email_fname in sent_emails:
+							try:
+								print("here22")
+								email_subject = "[ISSUU] No PDF link found for {} - {}".format(issuu, pub["web_title"])
+								print(email_subject)
+								email_message = '<body style="font-family:Calibri"><br><p>During the automated Issuu downloading process, we expected to find a link for downloading the following issue as a PDF, but it was not enabled:</p><br><p><ul><li><b>Title:</b> {}</li><li><b>Web designation:</b> {}</li><li><b>MMSID:</b> {}</li><li><b>URL for publication:</b> {}</li></ul></p></body>'.format(issuu, pub["web_title"], issuu_dict[issuu]["mms_id"], pub["url"])
+								print(email_message)
+								email_maker = Gen_Emails()
+								email_maker.EmailGen(email_address_line, email_subject, email_message,  email_fname, to_send_email)
+								with open (email_log,"a") as f:
+									f.write(email_fname)
+									f.write("\n")
+							except Exception as e:
+								print(str(e))
+
+
+
 
 
 			except exceptions.NoSuchElementException:
@@ -1945,16 +2479,14 @@ def harvester_routine(issuu):
 					f.write(pub["docname"])			
 					f.write("\n")
 			except Exception as e:
-				print("here3")
 				print(str(e))
-				print("here3")
 			for fname in os.listdir(temp_folder):
 				if not fname.endswith('part'):
 					flag_to_do = True
 			if len(os.listdir(temp_folder))==1 and flag_to_do:
 				enum_a, enum_b, enum_c, chron_i, chron_j, chron_k=parse_final_dictionary({"issue":pub["issue"], "volume":pub["volume"], "number":pub["number"],"season":pub["season"],"day":pub["day"],"month_string": pub["month"],"year":pub["year"],"term":pub["term"]}) 
-				
 				my_design = description_maker.make_description(enum_a, enum_b, enum_c, chron_i, chron_j, chron_k)
+				pub["design"] = my_design
 				# print(my_design)
 				# print(enum_a, enum_b, enum_c, chron_i, chron_j, chron_k)
 				if len(os.listdir(temp_folder)) >1:
@@ -1965,15 +2497,16 @@ def harvester_routine(issuu):
 					shutil.move(flname, new_filename)
 				except Exception as e:
 					print(str(e))
-				my_sip = SIPMaker(issuu, enum_a, enum_b, enum_c, chron_i, chron_j, chron_k, my_design, temp_folder)
+				my_sip = SIPMaker(issuu, enum_a, enum_b, enum_c, chron_i, chron_j, chron_k, my_design, temp_sip_folder)
 				if my_sip.flag:
 					for el in os.listdir(temp_folder):
 								os.remove(os.path.join(temp_folder,el))
 					my_item = ItemMaker()
+					#education_gazette_101.5_issuu2
 					my_item.item_routine( issuu, enum_a, enum_b, enum_c, chron_i, chron_j, chron_k, my_design)
-					if pub["date"]:
+					if pub["design"]:
 						with open(os.path.join(report_folder,issuu+".txt"),"a") as f:
-							f.write(pub["date"])
+							f.write(pub["design"])
 							f.write("\n")
 					else:
 						with open(os.path.join(report_folder,issuu+".txt"),"a") as f:
@@ -1989,21 +2522,31 @@ def harvester_routine(issuu):
 			with open(os.path.join(report_folder,"docnames_not_enabled_by_publisher.txt"),"a") as f:
 					f.write(pub["docname"])
 					f.write("\n")
-			try:
-				email_subject = "Was not scraped - {} {}".format(issuu,pub["web_title"])
-				email_message = "Issuu publications not enabled {} {} {} {}".format(issuu, issuu_dict[issuu]["mms_id"],pub["url"],pub["web_title"])
-
-				email_maker = Gen_Emails()
-				email_maker.EmailGen(email_address_line, email_subject, email_message, email_fname, to_send_email)
-			except Exception as e:
-				print(str(e))
+			print(sent_emails)
+			if not email_fname in sent_emails:
+				try:
+					print("here44")
+					email_subject = "[ISSUU] No PDF link found for {} - {}".format(issuu,pub["web_title"])
+					print(email_subject)
+					email_message = '<body style="font-family:Calibri"><br><p>During the automated Issuu downloading process, we expected to find a link for downloading the following issue as a PDF, but it was not enabled:</p><br><p><ul><li><b>Title:</b> {}</li><li><b>Web designation:</b> {}</li><li><b>MMSID:</b> {}</li><li><b>URL for publication:</b> {}</li></ul></p></body>'.format(issuu, pub["web_title"], issuu_dict[issuu]["mms_id"], pub["url"])
+					print(email_message)
+					email_maker = Gen_Emails()
+					email_maker.EmailGen(email_address_line, email_subject, email_message, email_fname, to_send_email)
+					with open (email_log,"a") as f:
+						f.write(email_fname)
+						f.write("\n")
+				except Exception as e:
+					print(str(e))
 
 def main():
+
 	go_to_flag = False
 	if len(os.listdir(temp_folder))!=0:
 		for el in os.listdir(temp_folder):
 			os.remove(os.path.join(temp_folder, el))
 	for issuu in issuu_dict:
+		print("#"*50)
+		print(issuu)
 		harvester_routine(issuu)
 		sips_number = len(os.listdir(sip_folder))
 		for sip in os.listdir(sip_folder):
@@ -2024,7 +2567,6 @@ def main():
 
 	#send_email.send_email(data)
 	driver.close()
-
-
+	covers_routine()
 if __name__ == "__main__":			
 	main()

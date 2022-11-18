@@ -70,7 +70,7 @@ class IssuuPdf:
 
 def main():
 
-    links = [r"/home/svetlana/Documents/issuu/files/Dressage NZ Bulletin/Issue 50 April 2021.pdf"]
+    links = [r"Y:\ndha\pre-deposit_prod\LD_working\issuu_main\test_file\test.pdf"]
     link = links[0]
     my_pdf = IssuuPdf(links[0])
     for link in links:
