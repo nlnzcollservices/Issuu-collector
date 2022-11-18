@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.9"
+install:
+  - pip install -r requirements.txt
+run: 
+  - python my_settings.py
+script:
+  - python -m unittest discover

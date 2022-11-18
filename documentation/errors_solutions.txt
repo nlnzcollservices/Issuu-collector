@@ -1,0 +1,9 @@
+Problem:
+Publisher changed username and url on web and publication was no collected
+Solution: 
+Change to correct one in dictionary url and username. They should be exact case match.
+Problem:
+Parsing error as web page gives "We are working on it"
+Solution:
+Temporarly #comment this title in dictionary. Do not forget uncomment after.
+Script will pick up it the next time if page is working. 
