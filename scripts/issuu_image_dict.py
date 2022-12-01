@@ -97,6 +97,7 @@
 
 
 issuu_dict = {
+"Dawn chorus": {'publisher': 'Supporters of TiritirI Matangi', 'web_title': 'Supporters of Tiritiri Matangi', 'mms_id': '9919196271902836', 'holding_id': '22379764200002836', 'po_line': 'POL-184018', 'pattern': '', 'days': '90', 'url': 'https://issuu.com/jimeagles8725', 'username': 'jimeagles8725', 'access': '200'} ,
 "Nelson City guide": {'publisher': 'Uniquely Nelson', 'web_title': 'Uniquely Nelson', 'mms_id': '9918571841202836', 'holding_id': '22317321940002836', 'po_line': 'POL-76374', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/uniquelynelson', 'username': 'uniquelynelson', 'access': '200'} ,
 "Metropol": {'publisher': 'Metros Publishing Group', 'web_title': 'Metropol', 'mms_id': '9916943743502836', 'holding_id': '22184020740002836', 'po_line': '321529-ilsdb', 'pattern': 'yyyy mm dd', 'days': '14', 'url': 'https://issuu.com/metrospublishinggroupltd', 'username': 'metrospublishinggroupltd', 'access': '200'} ,
 "The MAP": {'publisher': 'Movement Art Practice Limited', 'web_title': 'Movement Art Practice', 'mms_id': '9919212361402836', 'holding_id': '22381867860002836', 'po_line': 'POL-185645', 'pattern': '', 'days': '90', 'url': 'https://issuu.com/movementartpracticenz', 'username': 'movementartpracticenz', 'access': '200'} ,

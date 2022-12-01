@@ -7,13 +7,15 @@ import urllib
 import shutil
 import dateparser
 import gspread
+import  httplib2
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
 from time import mktime, sleep
 from sys import platform
+sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\issuu_main\scripts')
 from issuu_dict import issuu_dict
 from my_settings import sip_folder, temp_folder,report_folder, template_folder,logging, rosetta_folder
-sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\podcasts\scripts')
+sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\alma_tools')
 from alma_tools import AlmaTools
 from oauth2client import file
 from openpyxl import Workbook, load_workbook
@@ -38,7 +40,7 @@ def google_spreadsheet_routine():
 	#print(ws.row_count)
 	for i in range( ws.row_count):
 		row_number = i
-		if i in list(range(166,172)):
+		if i in list(range(162,166)):
 			#print(ws.row_values(row_number))
 			print("__________________________________")
 			try:
@@ -93,7 +95,7 @@ def routine():
 
 	for i in range(ws.max_row):
 		row_number = i+1
-		if row_number in range(158,163):
+		if row_number in range(163,169):
 			po_line = None
 			days= None
 			print("__________________________________")
