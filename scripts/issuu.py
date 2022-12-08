@@ -1015,7 +1015,7 @@ def harvester_routine(issuu):
 							if "-" in web_title:
 								month = web_title.split("-")[-1].strip(" ").rstrip(year)
 							else:
-								month = web_title.splti(" ")[-2]
+								month = web_title.split(" ")[-2]
 								
 							
 							print(month)
@@ -1079,9 +1079,13 @@ def harvester_routine(issuu):
 
 					if issuu in ["The New Zealand mortgage mag"]:
 
-							print(doc["docname"])
+						print(doc["docname"])
 
-							web_title = request_title(pdf_url)
+						web_title = request_title(pdf_url)
+						if doc["docname"]=="tmm5_2022_digital":
+							issue = "5"
+							year = "2002"
+						else:
 							if "TMM_" in web_title:
 								year = web_title.split("_")[-1]
 								issue = str(int(web_title.split("_")[-2]))
