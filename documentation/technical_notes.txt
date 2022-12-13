@@ -48,7 +48,7 @@ Functions:
 
 
 
-1. Script is iterating trough dcitionaris in "issuu_dict.py".  
+1. Script is iterating trough dictionaries in "issuu_dict.py".  
 2. Calls for the last Alma representation via "last_representation_getter.py"
 3. Makes call to http://search.issuu.com/api/2_0/ (see https://developers.issuu.com/search/introduction) for particular publisher
 4. Parses document names to identify particular publiscation and possibly date based on rules
@@ -74,7 +74,7 @@ Dictionary format:
 Example:
      {...,"Weekend Sun":{"publisher":	"Sun Media","web_title":"The Weekend Sun", "mms_id":"9915789603502836","holding_id":"22183434080002836","po_line":"286240-ilsdb","suppements":True, "pattern":"predictive", "days":None,"url":"https://issuu.com/sunmedia","username":"sunmedia"},...}
 
-"publisher name" and "web_title" are currently not in use howeve potentially could be applicable during title parsing.
+"publisher name" and "web_title" are currently not in use however potentially could be applicable during title parsing.
 "pattern" and "days" are also given for informative purpose but potentially could be used for "gap" identification
 
 3.my_settings.py
