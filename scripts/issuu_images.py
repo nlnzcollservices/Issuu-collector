@@ -432,7 +432,7 @@ def harvester_routine(issuu):
 		issuu(str) - publication name
 
 	"""
-	if issuu in ["Otaki street scene","Debate","Ōtaki street scene",'Carterton and South Wairarapa street scene',"Nourish magazine",'Real Estate']:
+	if issuu in ["Otaki street scene","Debate","Ōtaki street scene",'Carterton and South Wairarapa street scene',"Nourish magazine",'Real Estate','The MAP']:
 		seas_dict ["Summer"]="December"
 		seas_dict["summer"] = "December"
 		seas_dict["Raumati"]="December"
@@ -651,8 +651,10 @@ def harvester_routine(issuu):
 							print(web_title)
 							if "-" in web_title:
 								year = web_title.split("-")[-1]
-							if "/" in web_title:
+							elif "/" in web_title:
 								year = web_title.split("/")[-1]
+							else:
+								year =web_title.split(" ")[-1]
 							if len(year) == 2:
 								year = "20"+year														
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
@@ -682,6 +684,8 @@ def harvester_routine(issuu):
 							web_title = request_title(pdf_url)
 							print(web_title)
 							year = web_title.split(" ")[-1]
+							if "/" in year:
+								year = year.split("/")[-1]
 							season = web_title.split(" ")[-2]
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 
@@ -746,21 +750,32 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title, published, published_stamp = request_title_date(pdf_url)
 							print(web_title)
-							if  "-" in web_title:
-								web_title = web_title.split("-")[0].rstrip(" ")
-							if "—" in web_title:
-								web_title = web_title.split("—")[0].rstrip(" ")
-							print(web_title)
-							year = dateparser.parse(published_stamp).strftime("%Y")
-							#month = dateparser.parse(published_stamp).strftime("%b")
-							number = web_title.split(" / ")[0].lstrip("N. ")
-							volume = web_title.split(" / ")[1].lstrip("V. ")
-							my_design = description_maker.make_description(volume, number ,None,year,None,None)
-							my_date=0
-							print(my_date)
-							print(year)
-							print(number)
-							print(volume)
+							if web_title.split(" ")[-1].isdigit() and len(web_title.split(" ")[-1]) ==4:
+								year = web_title.split(" ")[-1]
+								if " - " in web_title:
+									issue = web_title.split(" - ")[0].split(" ")[-1]
+									my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+
+								else:
+									season = web_title.split(" ")[-2]
+									my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+							else:
+								if  "-" in web_title:
+									web_title = web_title.split("-")[0].rstrip(" ")
+								if "—" in web_title:
+									web_title = web_title.split("—")[0].rstrip(" ")
+								print(web_title)
+								year = dateparser.parse(published_stamp).strftime("%Y")
+								#month = dateparser.parse(published_stamp).strftime("%b")
+								number = web_title.split(" / ")[0].lstrip("N. ")
+								volume = web_title.split(" / ")[1].lstrip("V. ")
+								my_design = description_maker.make_description(volume, number ,None,year,None,None)
+								my_date=0
+								print(my_date)
+								print(year)
+								print(number)
+								print(volume)
 
 
 					if issuu in ["Prospectus imagine your future"]:
@@ -936,7 +951,8 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])			
 
 					if issuu in ["Supermarketnews"]:
-							if doc["docname"].startswith("sn") or doc["docname"].startswith("super") and not "bayer" in doc["docname"] and not "guide" in doc["docname"]:
+							print(doc["docname"])
+							if doc["docname"].startswith("sn") and doc["docname"].startswith("super") and not "buyer" in doc["docname"] and not "guide" in doc["docname"]:
 								web_title = request_title(pdf_url)
 								print(web_title)
 								year = web_title.split(" ")[-1]
@@ -945,7 +961,7 @@ def harvester_routine(issuu):
 							else:	
 								others.append(doc["docname"])	
 					if issuu in ["New Zealand apparel"]:
-						if doc["docname"].startswith("ap") and not "gift" in doc["docname"] and not "bayer" in doc["docname"] and not "guide" in doc["docname"] and not doc["docname"].endswith("_td"):
+						if doc["docname"].startswith("ap") and not "gift" in doc["docname"] and not "bayer" in doc["docname"] and not "guide" in doc["docname"] and not doc["docname"].endswith("_td") and not "trade_d" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -963,7 +979,7 @@ def harvester_routine(issuu):
 						else:	
 							others.append(doc["docname"])
 					if issuu in ['F and B technology']:
-						if doc["docname"].startswith("f_b") and not "guid" in doc["docname"]:
+						if doc["docname"].startswith("f_b") and not "guid" in doc["docname"] and not "_bg_" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -1211,12 +1227,10 @@ def harvester_routine(issuu):
 
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
-
-							print(web_title)
+							if "/" in web_title:
+								web_title =web_title.split("/")[0]
 							year = web_title.split(" ")[-1]
-							if "/" in year:
-								web_title = web_title.split("/")[0]
-							season= web_title.split(" ")[-2]
+							season= web_title.split(" ")[-2].capitalize()
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 
 					# if issuu in ["Design and build South East"]:
@@ -1264,6 +1278,10 @@ def harvester_routine(issuu):
 									day = "1"
 									month= "November"
 									year = "2018"
+								elif doc["docname"] == "chronicle_february_23_week_4s":
+									day ="23"
+									month = "February"
+									year ="2023"
 
 							# month = doc["docname"].split("_")[-2].capitalize()
 							# day=doc["docname"].split("_")[-1]
@@ -1975,7 +1993,7 @@ def harvester_routine(issuu):
 							new_title = None
 						print(my_date_stamp)
 						print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title or issuu in ["Yearbook","Leaders"]:
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title:# or issuu in ["Leaders"]:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"]
 								my_dict["url"]=pdf_url

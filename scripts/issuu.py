@@ -704,7 +704,7 @@ def harvester_routine(issuu):
 					 	else:
 					 		others.append(doc["docname"])
 					if issuu in ["Line of defence"]:
-						if "lod" in doc["docname"]:
+						if "lod" in doc["docname"] and not "media" in doc["docname"] and not "kit" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -715,6 +715,7 @@ def harvester_routine(issuu):
 							print(season)
 							if "/" in year:
 								year="20"+year.split("/")[-1]
+
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -770,7 +771,7 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 
 					if issuu in ['Winepress the official magazine of Wine Marlborough']:
-						if not "annual" in doc["docname"]:
+						if not "annual" in doc["docname"] and not doc["docname"].startswith("wp"):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -841,6 +842,8 @@ def harvester_routine(issuu):
 							print(web_title)
 							year = web_title.split(" ")[-1]
 							season = web_title.split(" ")[-2]
+							if "/" in year:
+								year="20"+year.split("/")[-1]
 							if doc["docname"] in ["widesky_online_issue"]:
 								year = "2021"
 								season = "Winter"
@@ -1166,13 +1169,15 @@ def harvester_routine(issuu):
 			
 							year = doc["docname"].split("-")[-1]
 							season = doc["docname"].split("-")[-2].capitalize()
-							
-							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							if len(year)!=4:
+								web_title=request_title(pdf_url)
+							else:
+								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 	
 						else:
 							others.append(doc["docname"])
 					if issuu in ["Hort news"]:
-						if doc["docname"].startswith("hn"):
+						if doc["docname"].startswith("hn") or doc["docname"].startswith("hort"):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -1238,6 +1243,8 @@ def harvester_routine(issuu):
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							issue = web_title.split(",")[0].split(" ")[1]
+							if "/" in month:
+								month = month.split("/")[0]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -1307,6 +1314,10 @@ def harvester_routine(issuu):
 							web_title = web_title.strip("()")
 							year = web_title.split(" ")[-1]
 							mnths = web_title.split(" ")[-2]
+							if not year.isdigit():
+								mnths = str(year)
+								web_title, published, published_stamp = request_title_date(pdf_url)
+								year = dateparser.parse(published_stamp).strftime("%Y")							
 							if "/" in mnths:
 								month = mnths.split("/")[0]
 								if month.isdigit():
@@ -1485,37 +1496,41 @@ def harvester_routine(issuu):
 						else:
 							others.append(doc["docname"])
 					if issuu in ['Ram']:
-							
+							print(doc["docname"])
 							try:
 								web_title, published, published_stamp = request_title_date(pdf_url)
 								year = dateparser.parse(published_stamp).strftime("%Y")
 							except:
 								web_title = request_title(pdf_url)
 								year = str(year_now)
-							issue = web_title.split("#")[1].split(" ")[0]
-							my_monthes = web_title.split(" ")[-1]
-							print(my_monthes)
-							if "/" in my_monthes:
-								monthes = my_monthes.strip("()").split("/")
+							print(web_title)
+							if "#" in web_title:
+								issue = web_title.split("#")[1].split(" ")[0]
+								my_monthes = web_title.split(" ")[-1]
+								print(my_monthes)
+								if "/" in my_monthes:
+									monthes = my_monthes.strip("()").split("/")
+								else:
+									monthes = [my_monthes]
+								print(monthes)
+								for el in monthes:
+									print(el)
+									if el in months_dictionary:
+										month = str(el)
+								print(year)
+								print(month)
+								print(issue)
+								my_design = description_maker.make_description(None, None, issue, year, month, None)
+								print(my_design)
+								if doc["docname"] == "ram_issue_6_fa_17a4381b0e837b":
+									month = "August"
+
+							# 	season = web_title.split(" ")[-2]
 							else:
-								monthes = [my_monthes]
-							print(monthes)
-							for el in monthes:
-								print(el)
-								if el in months_dictionary:
-									month = str(el)
-							print(year)
-							print(month)
-							print(issue)
-							my_design = description_maker.make_description(None, None, issue, year, monthes, None)
-							print(my_design)
-							if doc["docname"] == "ram_issue_6_fa_17a4381b0e837b":
-								month = "August"
-
-						# 	season = web_title.split(" ")[-2]
+								issue = doc["docname"].split("_")[-1]
+								year = dateparser.parse(published_stamp).strftime("%Y")
+								month = dateparser.parse(published_stamp).strftime("%B")
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-							print(my_date)
-
 
 					if issuu in ['Junction handbook Puhoi - Waipu']:
 						if "handbook" in doc["docname"]:
@@ -1591,13 +1606,25 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 							
 					if issuu in ['FMCG business']:
-						if "fmcg" in doc["docname"]:
+						if "fmcg" in doc["docname"] and not "leaders" in doc["docname"]:
 							web_title = request_title(pdf_url)
+							print(doc["docname"])
+							print(web_title)
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							if "-" in month:
 								month = month.split("-")[0]
 							my_date=dateparser.parse("01 "+month+ " " + year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+					if issuu in ['FMCG business leaders forum special report']:
+						if "fmcg" in doc["docname"] and  "leader" in doc["docname"]:
+							web_title = request_title(pdf_url)
+							print(doc["docname"])
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							
+							my_date=dateparser.parse("01 01 " + year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 					if issuu in ['Hospitality business']:
@@ -1988,7 +2015,7 @@ def harvester_routine(issuu):
 							try:
 								issue = re.findall('\d{3}', doc["docname"])[0]
 							except:
-								print("no isue found")
+								print("no issue found")
 							if "army news" in web_title.lower():
 								print(web_title, doc["docname"])
 								year = web_title.split(" ")[-1]
@@ -2239,12 +2266,17 @@ def harvester_routine(issuu):
 						else:
 							others.append(doc["docname"])
 					if issuu in ["DressageNZ bulletin"]:
-						# print(doc["docname"])
+						print(doc["docname"])
 						web_title = request_title(pdf_url)
 						web_title = web_title.rstrip(" ")
+						print(web_title)
 						year = web_title.split(" ")[-1]
 						month = web_title.split(" ")[-2]
 						issue = web_title.split(" ")[-3]
+						if issue in months_dictionary.keys():
+							month=str(issue)
+							issue=web_title.split(" ")[-4]
+						
 						if "/" in month:
 							month =month.split("/")[-1]	
 						if "issue_59_april_may_2022" in doc["docname"]:
@@ -2362,9 +2394,9 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "Dressage NZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles","The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag","Education Gazette","Army news","Love your workspace Christchurch","Nelson magazine","Wide Sky",'Regulus',"Irhace","Winepress the official magazine of Wine Marlborough","Drinksbiz",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hort news",'Cruise news','NZsecurity',"Line of defence",'Fire NZ',"Hauraki rail trail guide","War cry","Lizard News","Water","Water directory", "National performance review"] and my_dict["day"]=="01":
+								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "Dressage NZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business', 'FMCG business leaders forum special report','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles","The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag","Education Gazette","Army news","Love your workspace Christchurch","Nelson magazine","Wide Sky",'Regulus',"Irhace","Winepress the official magazine of Wine Marlborough","Drinksbiz",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hort news",'Cruise news','NZsecurity',"Line of defence",'Fire NZ',"Hauraki rail trail guide","War cry","Lizard News","Water","Water directory", "National performance review"] and my_dict["day"]=="01":
 									my_dict["day"]=None
-								if issuu in ["Explore Dunedin","Family care","Franchise New Zealand","Forest and bird","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"Update Canterbury Employers",'Love your workspace','Destination Devonport','Diabetes wellness','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Annual report Mercury','Interim report Mercury','Annual review taxpayers','Hooked up',"Air chats","RROGA news",'Cityscape Christchurch here and now',"What's hot Christchurch",'Prospectus',"The Learning Connexions graduation","The lampstand",'Summerset scene','Our place','Modern slavery statement',"Principals today","Getting the basics right","What's hot Christchurch","New farm dairies",'Annual report AFL','Northland must do',"The New Zealand mortgage mag","DressageNZ bulletin","Massive","Education Gazette","Love your workspace Christchurch",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hauraki rail trail guide" ,"Water directory", "National performance review"]:
+								if issuu in ["Explore Dunedin","Family care","Franchise New Zealand","Forest and bird","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"Update Canterbury Employers",'Love your workspace','Destination Devonport','Diabetes wellness','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Annual report Mercury','Interim report Mercury','Annual review taxpayers','Hooked up',"Air chats","RROGA news",'Cityscape Christchurch here and now',"What's hot Christchurch",'Prospectus',"The Learning Connexions graduation","The lampstand",'Summerset scene','Our place','Modern slavery statement',"Principals today","Getting the basics right", 'FMCG business leaders forum special report', "What's hot Christchurch","New farm dairies",'Annual report AFL','Northland must do',"The New Zealand mortgage mag","DressageNZ bulletin","Massive","Education Gazette","Love your workspace Christchurch",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hauraki rail trail guide" ,"Water directory", "National performance review"]:
 									my_dict["month"] = None
 								if issuu in ["Asset"]:
 									if not month or number:
