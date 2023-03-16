@@ -50,7 +50,7 @@ print("Firefox Headless Browser Invoked")
 
 logger = logging.getLogger(__name__)
 base_url = r"https://issuu.com/"
-search_url = r"http://search.issuu.com/api/2_0/document"
+search_url = r"https://search.issuu.com/api/2_0/document"
 page_url = r"https://image.isu.pub/"
 page_url_part2 = "/jpg/page_"
 pdf_url_part2 =r"/docs/"
@@ -327,6 +327,8 @@ def check_for_payment(url):
 
 def request_title(pdf_url):
 	r=requests.get(pdf_url ,verify=False)
+	print(r.url)
+	#print(r.text)
 	my_soup = bs(r.text,"lxml")
 	# print(my_soup)
 	try:
@@ -546,6 +548,77 @@ def harvester_routine(issuu):
 					# 		others.append(doc["docname"])
 					
 					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
+					if issuu in ["Auto channel"]:
+						if "ac_" in doc["docname"] or "auto" in doc["docname"]:
+							print(doc["docname"])
+							web_title, published, published_stamp = request_title_date(pdf_url)
+							print(web_title)
+							issue = web_title.split(" ")[-1].strip("#")			
+							year = dateparser.parse(published_stamp).strftime("%Y")
+							month_num= str(int(dateparser.parse(published_stamp).strftime("%m"))+1).zfill(2)
+							if month_num == "13":
+								month_num = "01"
+								year = str(int(year)+1)
+							print(month_num)
+							for el in months_dictionary:
+								if months_dictionary[el] == month_num:
+									month = str(el)
+
+							
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+						else:	
+							others.append(doc["docname"])
+					if issuu in ['Student voice']:
+						if  doc["docname"].startswith("student") or doc["docname"]=="etla_2019_spring_issuu" or doc["docname"]=="education_day_student_voice_2021_2021_summer_editi":
+							print(doc["docname"])
+							year = re.findall(r'\d{4}', doc["docname"])[0]	
+							seas_list = doc["docname"].split("_")
+							for ses in seas_list:
+								if ses in seas_dict.keys():
+									season = str(ses).capitalize()
+							if doc["docname"] == "student_voice_2022_issuu":
+								season = "Summer"
+							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+					if issuu in ['Learning Auckland']:
+						if doc["docname"].startswith("la") or doc["docname"].startswith("learning"):
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(",")[-1].strip(" ")
+							issue = web_title.split(",")[-2].lstrip("LA ")
+							
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+					if issuu in ['New Zealand apparel trade directory']:
+						if doc["docname"].startswith("ap") and ("trade" in doc["docname"] or "_td" in doc["docname"]):
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							year = re.findall(r'\d{4}', web_title)[0]	
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+					if issuu in ['Otuihau News']:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							issue = web_title.split(" ")[-3]
+							if "/" in year:
+								year = "20" + year.split("/")[-1]
+							if month in seas_dict.keys():
+								season = str(month)
+								month = None
+								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							else:
+								my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+
+
 					if issuu in ['Dawn chorus']:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
@@ -1298,27 +1371,7 @@ def harvester_routine(issuu):
 							
 								my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 
-					if issuu in ["Parent to parent magazine"]:
-						print(doc["docname"])
-						if "parent" in doc["docname"] or "p2p" in doc["docname"] or "magazine" in doc["docname"] or "mag_" in doc["docname"]:
-							
-							web_title = request_title(pdf_url)
-							print(web_title)
-							web_title_list = web_title.split(" ")
-							for el in web_title_list:
-								if el.capitalize() in months:
-									month = str(el).capitalize()
-								elif el.isdigit() and len(el) == 4:
-									year = str(el)
-								elif "Christmas" in el:
-									month = "December"
-							if doc["docname"] in ["parent_20to_20parent_20magazine_20d"]:
-								year = "2017"
-								month = "December"
-							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-						else:	
-							others.append(doc["docname"])
-
+					
 					if issuu in ['Nourish magazine']:
 						if "bop" in doc["docname"]:
 							print(doc["docname"])
@@ -1565,13 +1618,20 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 
 					if issuu in ['Heritage New Zealand']:
+
 						if "heritagenz" in doc["docname"]:
-							print(doc["docname"])
-							web_title = request_title(pdf_url)
-							print(web_title)
-							year = web_title.split(" ")[-1]
-							season = web_title.split(" ")[-2]
 							issue = doc["docname"].split("_")[-1]
+							if doc["docname"] == "heritagenz_168":
+								season = "Autumn"
+								year = "2023"
+								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							else:
+								print(doc["docname"])
+								web_title = request_title(pdf_url)
+								print(web_title)
+								year = web_title.split(" ")[-1]
+								season = web_title.split(" ")[-2]
+								issue = doc["docname"].split("_")[-1]
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -2009,9 +2069,9 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", "Parent to parent magazine",'Playmarket annual','Real Estate',"The observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury','Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus"] and my_dict["day"]=="01":
+								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
 									my_dict["day"]=None
-								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora"] and (my_dict["season"] or my_dict["month"]=="January" ):
+								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland'] and (my_dict["season"] or my_dict["month"]=="January" ):
 									my_dict["month"] = None
 
 					else:

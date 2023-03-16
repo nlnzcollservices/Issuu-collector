@@ -1,48 +1,7 @@
 
 
-
-#################################Not to do , why?
-#####!!!pdf required 'Te Korowai': {'publisher': 'Te Korowai o Ngāruahine Trust', 'web_title': 'iStudios Multimedia Ltd', 'mms_id': '9918193160402836', 'holding_id': '22305993660002836', 'po_line': 'POL-49719', 'pattern': '', 'days': '', 'url': 'https://issuu.com/deputy_editor', 'username': 'deputy_editor', "access": "200"},
-######!!!! pdf required 'Te Hookioi e rere atu na': {'publisher': 'Tainui Maori Trust Board', 'web_title': 'Waikato-Tainui', 'mms_id': '9912814503502836', 'holding_id': '22228625960002836', 'po_line': '154761-ilsdb', 'pattern': '', 'days': '', 'url': 'https://issuu.com/waikatotainui', 'username': 'waikatotainui', "access": "200"},
-
-
-#################################Irregular scoped out
-##### "Annual report Mercury": {'publisher': 'Mercury NZ Limited', 'web_title': 'Mercury', 'mms_id': '9918144059502836', 'holding_id': '22282574980002836', 'po_line': 'POL-13381', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/mercurynz', 'username': 'mercurynz', "access": "200"} ,
-##### "Interim report Mercury": {'publisher': 'Mercury NZ Limited', 'web_title': 'Mercury', 'mms_id': '9918144059102836', 'holding_id': '22282574850002836', 'po_line': 'POL-13385', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/mercurynz', 'username': 'mercurynz', "access": "200"} ,
-#####"Modern slavery statement": {'publisher': 'Mercury NZ Limited', 'web_title': 'Mercury', 'mms_id': '9919167993702836', 'holding_id': '22375707140002836', 'po_line': 'POL-180230', 'pattern': 'yyyy', 'days': '365', 'url': 'https://issuu.com/mercurynz', 'username': 'mercurynz', "access": "200"} ,
-
-
-#################################Nowhere
-# "Northland must do": {'publisher': 'AA Tourism Publishing Limited', 'web_title': 'AA Traveller', 'mms_id': '9918891369802836', 'holding_id': '22341530680002836', 'po_line': 'POL-114159', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/aatraveller', 'username': 'aatraveller', "access": "200"} ,
-
-################################The publications which are ocollected with not full designation
-#"Coast and country news" - issue not collected
-#"Farmers weekly" - missed vol and num
-#Waimea weekly  - day of week
-# Weekend sun -  issue
-#Rangatiro observer - no issue
-#GB weekly - no day of week
-#Juncion - no issue
-#FMCG - no volume and number
-#Art beat - no issue
-#war cry - no issue
-#What's hot Christchurch - no issue
-#New Farm dairy - no season
-
-##########The publication did was not published for a long time
-#Hooked up 2 y
-
-####The publications not available for a while
-#Massive
-#RAM
-#"RROGA news"
-#"Bay waka" 2020
-# "Update Canterbury" 2019
-#Waterline 20
-
 issuu_dict = {
 
-# # "Test":{"mms_id":"999999999999999"},
 #"The Guardian Motueka, Tasman and Golden Bay": {'publisher': 'Guardian : Motueka Tasman AND Golden Bay', 'web_title': 'Guardian', 'mms_id': '9918219670902836', 'holding_id': '22315197060002836', 'po_line': 'POL-71682', 'pattern': '', 'days': '7', 'url': 'https://issuu.com/guardian-motueka', 'username': 'guardian-motueka', "access": "200"} ,
 "Water": {'publisher': 'Water New Zealand', 'web_title': 'Water_New_Zealand', 'mms_id': '9916955313502836', 'holding_id': '22247694920002836', 'po_line': '360559-ilsdb', 'pattern': '', 'days': '75', 'url': 'https://issuu.com/water_new_zealand', 'username': 'water_new_zealand', 'access': '200'} ,
 "Water directory": {'publisher': 'Water New Zealand', 'web_title': 'Water_New_Zealand', 'mms_id': '9919195474602836', 'holding_id': '22378955420002836', 'po_line': 'POL-183536', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/water_new_zealand', 'username': 'water_new_zealand', 'access': '200'} ,
@@ -123,7 +82,7 @@ issuu_dict = {
 "Diabetes wellness": {'publisher': 'Diabetes New Zealand', 'web_title': 'Diabetes New Zealand', 'mms_id': '9918182371202836', 'holding_id': '22299791960002836', 'po_line': 'POL-43244', 'pattern': 'yyyy Season', 'days': '120', 'url': 'https://issuu.com/diabetesnewzealand', 'username': 'diabetesnewzealand', "access": "200"} ,
 "The G.B. weekly": {'publisher': 'G B Weekly', 'web_title': 'Golden Bay Weekly', 'mms_id': '9916664593502836', 'holding_id': '22215752620002836', 'po_line': '314284-ilsdb', 'pattern': 'yyyy dd mm', 'days': '7', 'url': 'https://issuu.com/charlotterichards3', 'username': 'charlotterichards3', "access": "200"} ,
 "Dairy farmer": {'publisher': 'GlobalHQ', 'web_title': 'Farmers Weekly NZ', 'mms_id': '9918214773302836', 'holding_id': '22313322880002836', 'po_line': 'POL-68340', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/farmersweeklynz', 'username': 'farmersweeklynz', "access": "200"} ,
-"Hospitality business": {'publisher': 'Intermedia Group Ltd', 'web_title': 'Hospitality', 'mms_id': '9917383893502836', 'holding_id': '22289812080002836', 'po_line': '343756-ilsdb', 'pattern': '', 'days': '35', 'url': 'https://issuu.com/theintermediagroup', 'username': 'theintermediagroup', "access": "200"} ,
+"Hospitality business": {'publisher': 'Intermedia Group Ltd', 'web_title': 'Hospitality', 'mms_id': '9917383893502836', 'holding_id': '22289812080002836', 'po_line': '343756-ilsdb', 'pattern': 'yyyy mm', 'days': '35', 'url': 'https://issuu.com/theintermediagroup', 'username': 'theintermediagroup', "access": "200"} ,
 "FMCG business": {'publisher': 'Intermedia Group Ltd', 'web_title': 'FMCG business', 'mms_id': '9918756873202836', 'holding_id': '22327112780002836', 'po_line': 'POL-93113', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/theintermediagroup', 'username': 'theintermediagroup', "access": "200"} ,
 "FMCG business leaders forum special report": {'publisher': 'Intermedia Group Ltd.', 'web_title': 'The Intermedia Group', 'mms_id': '9918758971602836', 'holding_id': '22327591800002836', 'po_line': 'POL-94081', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/theintermediagroup', 'username': 'theintermediagroup', 'access': '200'} ,
 "The Shout New Zealand": {'publisher': 'Intermedia Group Ltd.', 'web_title': 'The Shout New Zealand', 'mms_id': '9919003571802836', 'holding_id': '22352731910002836', 'po_line': 'POL-133395', 'pattern': 'yyyy mm', 'days': '60', 'url': 'https://issuu.com/theintermediagroup', 'username': 'theintermediagroup', "access": "200"} ,
@@ -132,13 +91,11 @@ issuu_dict = {
 "Pacific romance": {'publisher': 'Island Media', 'web_title': 'Matt Taylor', 'mms_id': '9918142068002836', 'holding_id': '22280975050002836', 'po_line': 'POL-11963', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/islandtimemag', 'username': 'islandtimemag', "access": "200"} ,
 "Junction handbook Puhoi - Waipu": {'publisher': 'Junction Media Ltd', 'web_title': 'Junction Mag', 'mms_id': '9918849172802836', 'holding_id': '22335292400002836', 'po_line': 'POL-110476', 'pattern': 'yyyy', 'days': '365', 'url': 'https://issuu.com/junctionmag', 'username': 'junctionmag', "access": "200"} ,
 "Junction Puhoi to Waipu": {'publisher': 'Junction Media Ltd', 'web_title': 'Junction Mag', 'mms_id': '9918849173002836', 'holding_id': '22335292610002836', 'po_line': 'POL-110466', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/junctionmag', 'username': 'junctionmag', "access": "200"} ,
-"Down in Edin magazine": {'publisher': 'Down in Edin', 'web_title': 'Down In Edin Magazine', 'mms_id': '9918570668902836', 'holding_id': '22316936250002836', 'po_line': 'POL-75237', 'pattern': 'iss yyyy mm', 'days': '90', 'url': 'https://issuu.com/downinedinmagazine', 'username': 'downinedinmagazine', "access": "200"} ,
 "Ram": {'publisher': 'Lincoln University Students Association', 'web_title': 'LUSA | RAM', 'mms_id': '9918013893502836', 'holding_id': '22228408700002836', 'po_line': '371487-ilsdb', 'pattern': '', 'days': '30', 'url': 'https://issuu.com/lusa8', 'username': 'lusa8', "access": "100"} ,
 "Hibiscus Matters": {'publisher': 'Local Matters', 'web_title': 'Localmatters', 'mms_id': '9915638213502836', 'holding_id': '22211631800002836', 'po_line': '277144-ilsdb', 'pattern': 'iss yyyy mm dd', 'days': '14', 'url': 'https://issuu.com/mahurangimatters', 'username': 'mahurangimatters', "access": "100"} ,
 "Build and renovate today": {'publisher': 'Magazines Today, Academy Group', 'web_title': 'Academy Group', 'mms_id': '9917505253502836', 'holding_id': '22231882160002836', 'po_line': '347154-ilsdb', 'pattern': 'iss yyyy', 'days': '90', 'url': 'https://issuu.com/MagazinesToday', 'username': 'MagazinesToday', "access": "200"} ,
-"Canterbury today": {'publisher': 'Magazines Today, Academy Group', 'web_title': 'Academy Group', 'mms_id': '9915192973502836', 'holding_id': '22207445050002836', 'po_line': '255060-ilsdb', 'pattern': 'iss yyyyy', 'days': '60', 'url': 'https://issuu.com/MagazinesToday', 'username': 'MagazinesToday', "access": "200"} ,
+"Canterbury today": {'publisher': 'Magazines Today, Academy Group', 'web_title': 'Academy Group', 'mms_id': '9915192973502836', 'holding_id': '22207445050002836', 'po_line': '255060-ilsdb', 'pattern': 'iss yyyy', 'days': '60', 'url': 'https://issuu.com/MagazinesToday', 'username': 'MagazinesToday', "access": "200"} ,
 "Principals today": {'publisher': 'Magazines Today, Academy Group', 'web_title': 'Academy Group', 'mms_id': '9915192953502836', 'holding_id': '22207541070002836', 'po_line': '255052-ilsdb', 'pattern': 'iss yyyy Term #', 'days': '90', 'url': 'https://issuu.com/MagazinesToday', 'username': 'MagazinesToday', "access": "200"} ,
-
 
 "Te korowai o Tangaroa": {'publisher': 'Maori Fisheries Trust , Te Ohu Kaimoana', 'web_title': 'Te Ohu Kai Moana Group', 'mms_id': '9919093071602836', 'holding_id': '22365531240002836', 'po_line': 'POL-164909', 'pattern': '', 'days': '90', 'url': 'https://issuu.com/tekorowai', 'username': 'tekorowai', "access": "200"} ,
 "Builders and contractors": {'publisher': 'Markat', 'web_title': 'Markat', 'mms_id': '9918190444402836', 'holding_id': '22305181610002836', 'po_line': 'POL-48064', 'pattern': 'iss yyyy', 'days': '90', 'url': 'https://issuu.com/markatpromotions', 'username': 'markatpromotions', "access": "200"} ,
@@ -152,7 +109,7 @@ issuu_dict = {
 
 "Dairy news": {'publisher': 'Rural News Group Ltd.', 'web_title': 'Rural News Group', 'mms_id': '9916375293502836', 'holding_id': '22258535080002836', 'po_line': '304540-ilsdb', 'pattern': 'iss yyyy mm dd', 'days': '14', 'url': 'https://issuu.com/ruralnewsgroup', 'username': 'ruralnewsgroup', "access": "200"} ,
 "Getting the basics right": {'publisher': 'Rural News Group Ltd.', 'web_title': 'Rural News Group', 'mms_id': '9918139765902836', 'holding_id': '22278994750002836', 'po_line': 'POL-9540', 'pattern': 'yyyy', 'days': '365', 'url': 'https://issuu.com/ruralnewsgroup', 'username': 'ruralnewsgroup', "access": "200"} ,
-"Hort news": {'publisher': 'Rural News Group Ltd.', 'web_title': 'Hort news', 'mms_id': '9918586073402836', 'holding_id': '22321031800002836', 'po_line': 'POL-82511', 'pattern': 'iss yyyy mm', 'days': '60', 'url': 'https://issuu.com/ruralnewsgroup', 'username': 'ruralnewsgroup', "access": "200"} ,
+"Hort news": {'publisher': 'Rural News Group Ltd.', 'web_title': 'Hort news', 'mms_id': '9918586073402836', 'holding_id': '22321031800002836', 'po_line': 'POL-82511', 'pattern': 'iss yyyy mm', 'days': '30', 'url': 'https://issuu.com/ruralnewsgroup', 'username': 'ruralnewsgroup', "access": "200"} ,
 "Rural news": {'publisher': 'Rural News Group Ltd', 'web_title': 'Rural News Group', 'mms_id': '9916372423502836', 'holding_id': '22258493830002836', 'po_line': '304427-ilsdb', 'pattern': 'iss yyyy mm dd', 'days': '14', 'url': 'https://issuu.com/ruralnewsgroup', 'username': 'ruralnewsgroup', "access": "200"} ,
 
 
@@ -176,17 +133,9 @@ issuu_dict = {
 "Irhace": {'publisher': 'Institute of Refrigeration Heating', 'web_title': 'IRHACE', 'mms_id': '9919159642302836', 'holding_id': '22374453040002836', 'po_line': 'POL-178164', 'pattern': 'yyyy mm', 'days': '60', 'url': 'https://issuu.com/irhace', 'username': 'irhace', "access": "200"} ,
 "Winepress the official magazine of Wine Marlborough": {'publisher': 'Wine Marlborough', 'web_title': 'Winepress', 'mms_id': '9919040572802836', 'holding_id': '22358000720002836', 'po_line': 'POL-147729', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/winepressmagazine', 'username': 'winepressmagazine', "access": "200"} ,
 "Te Rā o Waitangi": {'publisher': 'Heritage New Zealand Pouhere Taonga', 'web_title': 'heritagenz', 'mms_id': '9919059169502836', 'holding_id': '22361076760002836', 'po_line': 'POL-178164', 'pattern': 'iss yyyy Season', 'days': '60', 'url': 'https://issuu.com/heritagenz', 'username': 'heritagenz', "access": "200"} ,
-"Lizard News": {'publisher': 'Lizard News Ltd Omokoroa', 'web_title': None, 'mms_id': '9919014367302836', 'holding_id': '22354690260002836', 'po_line': 'POL-138028', 'pattern': '', 'days': '30', 'url': 'https://issuu.com/lizardnews', 'username': 'lizardnews', 'access': '200'},
+"Lizard News": {'publisher': 'Lizard News Ltd Omokoroa', 'web_title': None, 'mms_id': '9919014367302836', 'holding_id': '22354690260002836', 'po_line': 'POL-138028', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/lizardnews', 'username': 'lizardnews', 'access': '200'},
 
 
-
-
-#!BIG backlog but no good designation could try tesseract##"Guardian property": {'publisher': 'Ashburton Guardian Limited', 'web_title': None, 'mms_id': '9919212761902836', 'holding_id': '22381847980002836', 'po_line': 'POL-185635', 'pattern': '', 'days': '7', 'url': 'https://issuu.com/ashguardian', 'username': 'ashguardian', 'access': '200'} ,
-##!wait for cataloguing "Guardian farming": {'publisher': 'Ashburton Guardian Limited', 'web_title': None, 'mms_id': '9919204561602836', 'holding_id': '', 'po_line': '', 'pattern': '', 'days': '', 'url': None, ''https://issuu.com/ashguardian': 'ashguardian', 'access': '200'} ,
-# ??? 2016 last on page!!!"Construction excellence awards Connexis": {'publisher': 'Contrafed Publishing Co. Ltd', 'web_title': 'Contrafed Publishing', 'mms_id': '9918141553602836', 'holding_id': '22280816830002836', 'po_line': 'POL-11587', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/contrafed/docs', 'username': 'docs', 'access': '200'} ,
-# !!!No date, designation, anyting"Midwife Aotearoa New Zealand": {'publisher': 'New Zealand College of Midwives', 'web_title': 'Collegeofmidwives', 'mms_id': '9919029066602836', 'holding_id': '22355835810002836', 'po_line': 'POL-140712', 'pattern': '', 'days': '90', 'url': 'https://issuu.com/collegeofmidwives', 'username': 'collegeofmidwives', "access": "200"} ,
-# !!2017the last on site"Malvern news": {'publisher': 'Malvern News', 'web_title': 'Selwyn.net.nz', 'mms_id': '9914839313502836', 'holding_id': '22211382870002836', 'po_line': '247131-ilsdb', 'pattern': '', 'days': '7', 'url': 'https://issuu.com/kpkrew', 'username': 'kpkrew', 'access': '200'} ,
-# !!2017the last on site"Rolleston news": {'publisher': 'Malvern News', 'web_title': 'Selwyn.net.nz', 'mms_id': '9914839233502836', 'holding_id': '22211274440002836', 'po_line': '247125-ilsdb', 'pattern': '', 'days': '30', 'url': 'https://issuu.com/kpkrew', 'username': 'kpkrew', 'access': '200'} ,
 
 
 }

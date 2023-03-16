@@ -76,7 +76,7 @@ options.add_experimental_option('useAutomationExtension', False)
 logger = logging.getLogger(__name__)
 base_url = r"https://issuu.com/"
 test_url = r"https://issuu.com/dressagenzbulletin"
-search_url = r"http://search.issuu.com/api/2_0/document"
+search_url = r"https://search.issuu.com/api/2_0/document"
 # page_url = r"https://image.isu.pub/"
 # page_url_part2 = "/jpg/page_"
 pdf_url_part2 =r"/docs/"
@@ -614,6 +614,7 @@ def harvester_routine(issuu):
 					if issuu in ['Water']:
 						if not "npr" in doc["docname"] and not "directory" in doc["docname"]  and  not "competency" in doc["docname"] and  not "naviga" in doc["docname"]:
 							web_title = request_title(pdf_url)
+							print(web_title)
 							title_words = web_title.split(" ")
 							try:
 								issue = re.findall(r'\s(\d{3})\s', web_title)[0]
@@ -630,6 +631,7 @@ def harvester_routine(issuu):
 								if wrd in months_dictionary.keys():
 									month = str(wrd)
 							if not month or not year:
+								print("here777")
 								web_title, published, published_stamp = request_title_date(pdf_url)
 								year = dateparser.parse(published_stamp).strftime("%Y")
 								month = dateparser.parse(published_stamp).strftime("%B")	
@@ -1704,7 +1706,7 @@ def harvester_routine(issuu):
 						else:
 							others.append(doc["docname"])
 					if issuu in ["The Rangitoto Observer"]:
-						if "rangitoto" in doc["docname"]:
+						if "rangi" in doc["docname"] or doc["docname"] == "issu_observer_20jan2023" :
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							web_title = web_title.lstrip("Rangitoto Observer")
@@ -2077,18 +2079,6 @@ def harvester_routine(issuu):
 								issue = web_title.split(" ")[-1] 
 						my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
 
-					if issuu in ["Down in Edin magazine"]:
-						# print(doc["docname"])
-						if "downinedinissue" in doc["docname"]:
-							issue = doc["docname"].lstrip("downinedinissue")
-						elif "diemissue" in doc["docname"]:
-							issue = doc["docname"].lstrip("diemissue")
-
-						web_title, published, published_stamp = request_title_date(pdf_url)
-						year = dateparser.parse(published_stamp).strftime("%Y")
-						month = dateparser.parse(published_stamp).strftime("%B")
-						my_date=dateparser.parse("01 "+ month + " "+year, settings ={'DATE_ORDER': 'DMY'})
-
 					if issuu in ["Better breathing"]:
 						if not "annual" in doc["docname"]:
 							web_title = request_title(pdf_url)
@@ -2378,7 +2368,7 @@ def harvester_routine(issuu):
 					#	print(alma_last_representation_list[0])
 					#	print(my_date_stamp)
 						#print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu in ["Ponsonby news"]:
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu in ["The Rangitoto Observer"]:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"]
 								my_dict["url"]=pdf_url
