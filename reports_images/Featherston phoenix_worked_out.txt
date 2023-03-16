@@ -123,3 +123,6 @@ phoenixaug2022high_res
 phoenixsept2022highres_1_
 october2022_highres
 november2022_highres
+december2022highres
+february2023high_res
+march2023high_res

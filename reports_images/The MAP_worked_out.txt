@@ -1,3 +1,5 @@
 autumn_2021
 map_winter_id_to_print
 map_spring_2021_catalogue
+the_map_autumn_2022
+map_publication_summer_2021

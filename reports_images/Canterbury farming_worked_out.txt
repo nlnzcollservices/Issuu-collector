@@ -60,3 +60,7 @@ edition_2022-07_v4
 edition_2022-09_v2
 edition_2022-10_v3
 edition_2022-11_v2
+edition_2022-12_v2
+edition_2023-01_v3
+edition_2023-02_v3
+edition_2023-03_v5

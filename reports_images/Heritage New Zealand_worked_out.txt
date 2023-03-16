@@ -26,3 +26,5 @@ waitangi_2022_booklaet_final.web
 waitangi_day_2021
 heritagenz_165
 heritagenz_166
+heritagenz_167
+heritagenz_168

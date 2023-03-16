@@ -186,3 +186,6 @@ avenues_jul_22_issuu
 avenues_sep_22_issuu
 avenues_oct_22_issuu
 avenues_nov_22_issuu
+avenues_dec_2022_issuu
+avenues_feb_2023_issuu
+avenues_mar_2023_issuu

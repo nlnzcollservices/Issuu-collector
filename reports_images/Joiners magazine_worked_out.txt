@@ -44,3 +44,4 @@ joiners_mar_2022_for_web
 joiners_magazine_june_2019
 joiners_mag_june_21_for_web
 joiners_sept_2022_for_web
+joiners_dec_22_to_web

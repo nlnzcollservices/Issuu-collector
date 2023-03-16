@@ -130,3 +130,7 @@ nz_manufacturer_july_2022
 nz_manufacturer_august_2022
 nz_manufacturer_september_2022
 nz_manufacturer_october_2022
+nz_manufacturer_november_2022
+nz_manufacturer_december_2022
+_nz_manufacturer_february_2023
+nz_manufacturer_march_23

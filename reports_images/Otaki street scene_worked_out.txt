@@ -7,3 +7,5 @@ _taki_street_scene_spring_2020
 otaki_street_scene_autumn_2022
 _taki_street_scene_winter_2022
 otaki_street_scene_spring_2022
+otaki_street_scene_summer_2022-23
+_taki_street_scene_autumn_2023

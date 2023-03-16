@@ -41,3 +41,7 @@ june_2022_
 august_2022_indd_
 september_2022_
 november_observer_
+december_observer_
+january_observer
+february_observer_
+march_observer

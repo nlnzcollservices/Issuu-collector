@@ -392,3 +392,4 @@ sn_june_2022
 supermarketnews_august_2022
 sn_september_2022
 sn_october_2022
+sn_1122_final

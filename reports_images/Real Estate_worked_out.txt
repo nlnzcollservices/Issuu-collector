@@ -6,3 +6,4 @@
 final_spring_magazine
 16192_re_mag_autumn2022_final_a28acabcfd089c
 16305_re_mag_winter2022_web
+16509_re_mag_spring22summer23_web
