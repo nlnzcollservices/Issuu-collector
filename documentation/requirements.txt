@@ -3,7 +3,7 @@ bs4==0.0.1
 dateparser==1.0.0
 lxml==4.9.1
 regex==2021.4.4
-requests==2.24.0
+requests==2.31.0
 rosetta-sip-factory==0.1.9
 selenium==3.141.0
 
