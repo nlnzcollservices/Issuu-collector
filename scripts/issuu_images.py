@@ -25,7 +25,7 @@ from email_maker import Gen_Emails
 #sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\waterford\scripts')
 import last_representation_getter
 import send_email
-from issuu_cover_displayer import routine as covers_routine
+from issuu_cover_displayer_all import routine as covers_routine
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from sys import platform

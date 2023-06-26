@@ -9,7 +9,7 @@ import shutil
 import dateparser
 import pyautogui
 import keyboard
-from issuu_cover_displayer import routine as covers_routine
+from issuu_cover_displayer_all import routine as covers_routine
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
 from time import mktime, sleep

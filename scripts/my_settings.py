@@ -3,8 +3,11 @@ import sys
 import configparser
 from datetime import datetime as dt
 import logging
-
-
+sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\alma_tools')
+from alma_tools import AlmaTools
+#Rhonda
+#sys.path.insert(0,r'H:\project\Alma-tools')
+#from alma_tools_v3 import AlmaTools
 
 #********************SETTINGS FILE FOR ALL PODCAST SCRTIPTS****************#
 
@@ -31,22 +34,24 @@ sent_emal = os.path.join(email_folder,"sent")
 # database_fullname = os.path.join(database_folder, "podcasts.db")
 sip_folder_images = os.path.join(working_folder, "SIP_images")
 sip_folder = os.path.join(working_folder, "SIP")
-rosetta_folder = r"Y:\NDHA\pre-deposit_prod\server_side_deposits\prod\ld_scheduled\periodic"
+#rosetta_folder = r"Y:\NDHA\pre-deposit_prod\server_side_deposits\prod\ld_scheduled\periodic"
+rosetta_folder = r"Y:\ndha\pre-deposit_prod\LD_working\issuu_main\rosetta_folder_staging"
 
 #path for cover displayer html files
 file_name=r"G:\Fileplan\Bib_Services\Non-Clio_formats\digital_collecting_projects\ISSUU\issuu_titles_covers.html"
 file_name_innz = r"G:\Fileplan\Bib_Services\Non-Clio_formats\digital_collecting_projects\ISSUU\issuu_titles_innz.html"
-
+file_name_sip = r"G:\Fileplan\Bib_Services\Non-Clio_formats\digital_collecting_projects\ISSUU\issuu_new_issues.html"
+#file_name_innz_sip = r"G:\Fileplan\Bib_Services\Non-Clio_formats\digital_collecting_projects\ISSUU\issuu_sip_innz.html"
 
 
 ########################SETTING FOLDER FOR CREDENTIAL FILES#################
 
 # *-used for proxies, google credentials, alma APIs and DNZ APIs
 secrets_and_credentials_fold = r'H:\\secrets_and_credentials'#Svetlana's secrets
-# secrets_and_credentials_fold = r'H:\\Secrets'#Rhonda's secrets
+#secrets_and_credentials_fold = r'H:\\Secrets'#Rhonda's secrets
 sys.path.insert(0, secrets_and_credentials_fold)
 secret_file = os.path.join(secrets_and_credentials_fold, "secrets") #Svetlana's secrets
-# secret_file = os.path.join(secrets_and_credentials_fold, "shopping") #Rhonda's secrets
+#secret_file = os.path.join(secrets_and_credentials_fold, "shopping") #Rhonda's secrets
 config = configparser.ConfigParser()
 config.read(secret_file)
 
@@ -69,7 +74,7 @@ sb_key= config.get("configuration", "sandbox")
 logging.basicConfig(level=logging.INFO,  datefmt='%Y-%m-%d %H:%M:%S', format = "%(name)15s (%(levelname)s) : %(message)s[%(asctime)s]")
 	
 months_dictionary = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06","July":"07", "August":"08","September":"09", "October":"10","November":"11", "December":"12"}
-seas_dict = {"Spring":"October","Autumn":"April", "Winter":"July", "Summer":"January","Summers":"January","spring":"October","autumn":"April", "winter":"July", "summer":"January","Hōtoke":"July", "Kōanga":"October", "Raumati":"January", "Ngahuru":"April","Chtistmas":"December", "christmas":"December", "Here turi koa":"August"}
+seas_dict = {"Summerer":"January","Spring":"October","Autumn":"April", "Winter":"July", "Summer":"January","Summers":"January","spring":"October","autumn":"April", "winter":"July", "summer":"January","Hōtoke":"July", "Kōanga":"October", "Raumati":"January", "Ngahuru":"April","Chtistmas":"December", "christmas":"December", "Here turi koa":"August"}
 months = ["January", "February", "March", "April", "May", "June", "July", "August","September", "October","November", "December"]
 reversed_season = {"10":"Spring", "11":"Spring", "09":"Spring","03":"Autumn", "04":"Autumn", "05":"Autumn","06":"Winter","07":"Winter", "08":"Winter","01":"Summer","02":"Summer","12":"Summer"}
 term_dict = {"1":"January","2":"April", "3":"July", "4":"October"}
