@@ -50,6 +50,7 @@ Functions:
 
 1. Script is iterating trough dictionaries in "issuu_dict.py".  
 2. Calls for the last Alma representation via "last_representation_getter.py"
+   
 ~~3. Makes call to http://search.issuu.com/api/2_0/ (see https://developers.issuu.com/search/introduction) for particular publisher~~
 3. Uses selenium and web-driver to grab last publications docnames and aws docnames from publisher page.
 4. Parses document names to identify particular publiscation and possibly date based on rules
