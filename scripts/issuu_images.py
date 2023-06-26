@@ -228,7 +228,8 @@ class SIPMaker():
 			logger.info("Making sips")
 			os.chdir("..")
 			os.getcwd()
-			self.output_folder = os.path.join(sip_folder, self.pub_name.replace(" ","_") + "_"+self.description.replace(" ","").replace(".","_").replace("(","-").replace(")","-").replace(",","-").rstrip("-").rstrip("_"))
+			self.sip_name_folder = self.pub_name.replace(" ","_") + "_"+self.description.replace(" ","").replace(".","_").replace("(","-").replace(")","-").replace(",","-").rstrip("-").rstrip("_")
+			self.output_folder = os.path.join(sip_folder, self.sip_name_folder )
 			logger.info(self.output_folder)
 			try:
 				build_sip(
@@ -256,6 +257,30 @@ class SIPMaker():
 				logger.error(str(e))
 			os.chdir("scripts")
 			os.getcwd()
+def get_my_doc_json(url):
+	print(url)
+	driver.get(url)
+	driver.implicitly_wait(13)
+	#scroll_down(driver)
+	#driver.implicitly_wait(5)
+	username = url.split("/")[-1]
+	html = driver.page_source
+	soup = bs(html, "html.parser")
+	links = soup.find_all("a", href=True)
+	matched_links = []
+	for link in links:
+
+		href = link.get("href")
+
+		if "{}/docs/".format(username) in href:
+		    image_link = link.find("div").find("div").find("img").get("src")
+	
+		    image_id = image_link.split("/")[-3]
+		    docname = href.split("/")[-1]
+		    matched_links.append({"docname":docname, "documentId":image_id})
+	# print(matched_links)
+	return matched_links
+
 
 
 def sip_checker(sippath):
@@ -323,7 +348,25 @@ def check_for_payment(url):
 			# 	if len(re.findall("The publisher chose",r.text)) >0:
 			# 		return True
 			return False
-		
+
+def scroll_down(driver):
+
+	"""
+	A method for scrolling the page.
+	Origin: #https://stackoverflow.com/questions/48850974/selenium-scroll-to-end-of-page-in-dynamically-loading-webpage
+	"""
+
+	last_height = driver.execute_script("return document.body.scrollHeight")
+
+	while True:
+	# for i in range(3):
+
+	    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+	    sleep(6)
+	    new_height = driver.execute_script("return document.body.scrollHeight")
+	    if new_height == last_height:
+	         break
+	    last_height = new_height		
 
 def request_title(pdf_url):
 	r=requests.get(pdf_url ,verify=False)
@@ -457,12 +500,18 @@ def harvester_routine(issuu):
 		pass
 	logger.info(issuu_dict[issuu]["url"])
 	username = issuu_dict[issuu]["username"]
+	pub_url = issuu_dict[issuu]["url"]
 	params = {"username":username,"pageSize":"100"}
-	r = requests.get(search_url,params = params,verify=False)
+	# r = requests.get(search_url,params = params,verify=False)
+	# print(search_url)
+	# print(params)
+	# print(r)
+	# print(r.url)
+	# quit()
 
 	
 	#logger.setLevel("DEBUG")
-	logger.debug(r.text)
+	#logger.debug(r.text)
 	my_dates = []
 	try:
 		# print(issuu)
@@ -497,18 +546,20 @@ def harvester_routine(issuu):
 	for el in os.listdir(file_folder):
 		os.remove(os.path.join(file_folder,el))
 
+	my_docs =  get_my_doc_json(pub_url)
 
-	my_json = r.json()
-	num_found = my_json["response"]["numFound"]
+	# my_json = r.json()
+	# num_found = my_json["response"]["numFound"]
 	my_dict_list = []
 	my_dict = {}
-	for ind in range(int(num_found)//100+2):
-		start_index = ((int(num_found)//100)-ind)*100
-		params["startIndex"]=start_index
-		r = requests.get(search_url, params,verify=False)
-		my_doc_json = r.json()["response"]["docs"]
-		logger.debug(my_doc_json)
-		for doc in my_doc_json:
+	others = []
+	# for ind in range(int(num_found)//100+2):
+	# 	start_index = ((int(num_found)//100)-ind)*100
+	# 	params["startIndex"]=start_index
+	# 	r = requests.get(search_url, params,verify=False)
+	# 	my_doc_json = r.json()["response"]["docs"]
+	# 	logger.debug(my_doc_json)
+	for doc in my_docs:
 
 			if not doc in my_docnames:
 
@@ -532,8 +583,11 @@ def harvester_routine(issuu):
 				published_stamp = None
 				# print(doc["docname"])
 				pdf_url =base_url+issuu_dict[issuu]["username"]+pdf_url_part2+doc["docname"]
+				print(doc["docname"])
+				print(my_docnames)
 
 				if not doc["docname"] in my_docnames:
+					print("here4444")
 					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
 					# if issuu in ['']:
 					# 	if "" in doc["docname"]:
@@ -570,7 +624,7 @@ def harvester_routine(issuu):
 						else:	
 							others.append(doc["docname"])
 					if issuu in ['Student voice']:
-						if  doc["docname"].startswith("student") or doc["docname"]=="etla_2019_spring_issuu" or doc["docname"]=="education_day_student_voice_2021_2021_summer_editi":
+						if  doc["docname"].startswith("student") or doc["docname"]=="etla_2019_spring_issuu" or doc["docname"]=="education_day_student_voice_2021_2021_summer_editi" or doc["docname"] == "education_today_magazine_spring_2020_issuu_updated" :
 							print(doc["docname"])
 							year = re.findall(r'\d{4}', doc["docname"])[0]	
 							seas_list = doc["docname"].split("_")
@@ -579,6 +633,8 @@ def harvester_routine(issuu):
 									season = str(ses).capitalize()
 							if doc["docname"] == "student_voice_2022_issuu":
 								season = "Summer"
+							if doc["docname"] == "education_today_magazine_spring_2020_issuu_updated":
+								season = "Spring"
 							my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:	
 							others.append(doc["docname"])
@@ -734,6 +790,7 @@ def harvester_routine(issuu):
 
 					
 					if issuu in ["Metropol"]:
+						if not "bridal" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -751,7 +808,8 @@ def harvester_routine(issuu):
 							if len(year) <4:
 								year= doc["docname"].split("_")[-1]
 							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-					
+						else:	
+							others.append(doc["docname"])
 					if issuu in ['The MAP']:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
@@ -877,6 +935,7 @@ def harvester_routine(issuu):
 					if issuu in ['Pipiwharauroa']:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
+							web_title = web_title.replace(")2",") 2")
 							print(web_title)
 							title_list = web_title.split(" ")
 							for el in title_list:
@@ -1197,6 +1256,9 @@ def harvester_routine(issuu):
 							month = web_title.split(" ")[-2]
 							if "/" in month:
 								month = month.split("/")[0]
+							if doc["docname"] in ["eastlifejuly23_mocks"]:
+								year = "2023"
+								month = "July"
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:	
 							others.append(doc["docname"])
@@ -1271,7 +1333,7 @@ def harvester_routine(issuu):
 
 					
 
-					if issuu in ['The observer']:
+					if issuu in ['The Observer']:
 						web_title, published, published_stamp = request_title_date(pdf_url)
 						print(web_title)
 						web_title_list = web_title.split(" ")
@@ -1362,11 +1424,16 @@ def harvester_routine(issuu):
 						else:	
 							others.append(doc["docname"])
 
-					if issuu in ['Playmarket annual']:
+					if issuu in ["Playmarket annual"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							if " NO. " in web_title.upper():
 								issue = web_title.upper().split(" NO. ")[-1]
+								year = web_title.upper().split(" ")[-3]
+							
+								my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+							if " NO " in web_title.upper():
+								issue = web_title.upper().split(" NO ")[-1]
 								year = web_title.upper().split(" ")[-3]
 							
 								my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
@@ -1488,7 +1555,9 @@ def harvester_routine(issuu):
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
+
 					if issuu in ['The maritimes newsletter of the Maritime Union of New Zealand']:
+						if not "worker" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -1521,24 +1590,15 @@ def harvester_routine(issuu):
 							elif month_season in seas_dict.keys():
 								season = str(month_season).capitalize()
 								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-
-					if issuu in ['Kia ora India']:
-						if doc["docname"].startswith("kiaora"):
+						else:
+							others.append(doc["docname"])
+					if issuu in ['The maritime worker Wellington branch']:
+						if "worker" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
-							if doc["docname"] == "kiaora_india_nov2022_final":
-								year = "2022"
-								month = "November"
-							else:
-								year = web_title.split(" ")[-1]
-								month = web_title.split(" ")[-2].capitalize()
-								if month in short_month_dict.keys():
-									month = short_month_dict[month]
-								vol_iss = web_title.split("|")[-2].rstrip(" ").lstrip(" ")
-								volume = vol_iss.split(" ")[-3].strip("Vvol")
-								issue = vol_iss.split(" ")[-1]
-								issue = int(issue)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
 
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
@@ -1767,7 +1827,7 @@ def harvester_routine(issuu):
 							else:
 								month=my_correct_base.split(" ")[-2].capitalize()
 							if not month in months_dictionary.keys():
-								month = short_month_dict[month]
+								month = short_month_dict[month.upper()]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						# else:
 						# 	others.append(doc["docname"])
@@ -2026,13 +2086,19 @@ def harvester_routine(issuu):
 							my_date=dateparser.parse("01 " + month + year, settings ={'DATE_ORDER': 'DMY'})
 				
 					if issuu in ['SLANZA collected']:
+						if not "guide" in doc["docname"]:
 							print(doc["docname"])
 							web_title, published, published_stamp = request_title_date(pdf_url)
 							print(web_title)
 							issue = web_title.split("#")[-1]
-							year = dateparser.parse(published_stamp).strftime("%Y")
-							
+							if doc["docname"] =="collected_30readytopublish":
+								year = "2023"
+							else:						
+								year = dateparser.parse(published_stamp).strftime("%Y")
 							my_date=dateparser.parse("01 " + "01 "+ year, settings ={'DATE_ORDER': 'DMY'})
+						else:
+							others.append(doc["docname"])
+
 				# print(my_date)
 				if not my_date and my_date!=0:
 					print("Check date parsing")
@@ -2053,9 +2119,9 @@ def harvester_routine(issuu):
 							new_title = None
 						print(my_date_stamp)
 						print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title:# or issuu in ["Leaders"]:
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title or issuu in ["Debate","The Observer","Playmarket annual"]:
 								my_dict["docname"] =doc["docname"]
-								my_dict["document_id"] = doc["documentId"]
+								my_dict["document_id"] = doc["documentId"] 
 								my_dict["url"]=pdf_url
 								my_dict["web_title"]=web_title
 								my_dict["season"] = season
@@ -2069,7 +2135,7 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
+								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritime worker Wellington branch","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The Observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
 									my_dict["day"]=None
 								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland'] and (my_dict["season"] or my_dict["month"]=="January" ):
 									my_dict["month"] = None
@@ -2179,17 +2245,31 @@ def harvester_routine(issuu):
 					os.remove(os.path.join(file_folder,el))
 				my_item = ItemMaker()
 				my_item.item_routine( issuu, enum_a, enum_b, enum_c, chron_i, chron_j, chron_k, my_design)
-				if pub["design"]:
-					with open(os.path.join(report_folder_images,issuu+".txt"),"a") as f:
-						f.write(pub["design"])
-						f.write("\n")
-				else:
-					with open(os.path.join(report_folder_images,issuu+".txt"),"a") as f:
-						f.write(my_design)
-						f.write("\n")
+				if  not pub["design"]:
+						pub["design"] =my_design
+				with open(os.path.join(report_folder_images,issuu+".txt"),"a") as f:
+					f.write(pub["design"])
+					f.write("\n")
+
 				with open(os.path.join(report_folder_images, issuu+"_worked_out.txt"),"a") as f:
 					f.write(pub["docname"])
 					f.write("\n")
+				with open("new_issues_viz_temp_{}.txt".format(dt.now().strftime("%Y_%m_%d")),"a") as f:
+					f.write(issuu)
+					f.write("||")				
+					f.write(pub["docname"])
+					f.write("||")
+					f.write(pub["url"])
+					f.write("||")
+					f.write(pub["document_id"])
+					f.write("||")
+					f.write(pub["design"])
+					f.write("||")
+					f.write(os.path.join(rosetta_folder, my_sip.sip_name_folder))
+					f.write("||")
+					f.write(my_sip.sip_name_folder)
+					f.write("\n")
+
 		else:
 			
 		 	print("Payment detected")
