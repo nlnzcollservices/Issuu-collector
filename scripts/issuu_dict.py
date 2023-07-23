@@ -126,7 +126,7 @@ issuu_dict = {
 "The Learning Connexions graduation": {'publisher': 'The Learning Connexion', 'web_title': 'The Learning Connexion - School of Creativity and Art', 'mms_id': '9919060073202836', 'holding_id': '22361211620002836', 'po_line': 'POL-157353', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/the-learning-connexion', 'username': 'the-learning-connexion', "access": "200"} ,
 
 "New Zealand cameratalk": {'publisher': 'The Photographic Society of New Zealand Inc', 'web_title': 'Photographic Society of New Zealand', 'mms_id': '9916591133502836', 'holding_id': '22243766210002836', 'po_line': '310445-ilsdb', 'pattern': 'yyyy mm', 'days': '60', 'url': 'https://issuu.com/photographicsocietyofnewzealand', 'username': 'photographicsocietyofnewzealand', "access": "100"} ,
-"War cry": {'publisher': 'The Salvation Army', 'web_title': 'The Salvation Army War Cry (NZ, Fiji, Tonga and Samoa)', 'mms_id': '9918136062902836', 'holding_id': '22277162290002836', 'po_line': 'POL-7010', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/salvationarmynzftwarcry', 'username': 'salvationarmynzftwarcry', "access": "200"} ,
+"SALT": {'publisher': 'The Salvation Army (incl. Social Policy & Parliamentary Unit)', 'web_title': 'The Salvation Army War Cry (NZ, Fiji, Tonga and Samoa)', 'mms_id': '9919305835102836', 'holding_id': '22395953430002836', 'po_line': 'POL-204003', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/salvationarmynzftwarcry', 'username': 'salvationarmynzftwarcry', 'access': '200'} ,
 
 "The specialist": {'publisher': 'Association of Salaried Medical Specialists', 'web_title': 'AssociationofSalariedMedicalSpecialists', 'mms_id': '9915803533502836', 'holding_id': '22233991400002836', 'po_line': '287031-ilsdb', 'pattern': 'iss yyyy mm', 'days': '90', 'url': 'https://issuu.com/associationofsalariedmedicalspecialists', 'username': 'associationofsalariedmedicalspecialists', "access": "200"} ,
 "Summerset scene": {'publisher': 'Summerset', 'web_title': 'summerset ', 'mms_id': '9919151390602836', 'holding_id': '22373218430002836', 'po_line': 'POL-176515', 'pattern': 'yyyy Season', 'days': '90', 'url': 'https://issuu.com/summersetgroupholdingsltd', 'username': 'summersetgroupholdingsltd', "access": "200"} ,
@@ -138,7 +138,8 @@ issuu_dict = {
 "Lizard News": {'publisher': 'Lizard News Ltd Omokoroa', 'web_title': None, 'mms_id': '9919014367302836', 'holding_id': '22354690260002836', 'po_line': 'POL-138028', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/lizardnews', 'username': 'lizardnews', 'access': '200'},
 "Purongo a Tau annual report": {'publisher': 'Te Pūtea Whakatupu Trust', 'web_title': 'Te Pūtea Whakatupu Trust', 'mms_id': '9919296433302836', 'holding_id': '22394351570002836', 'po_line': 'POL-201399', 'pattern': 'yyyy', 'days': '365', 'url': 'https://issuu.com/tapuwaeroa', 'username': 'tapuwaeroa', 'access': '100'} ,
 
-
+'Malvern news': {'publisher': 'Malvern News', 'web_title': 'Malvern News', 'mms_id': '9914839313502836', 'holding_id': '22211382870002836', 'po_line': '247131-ilsdb', 'pattern': '', 'days': '7', 'url': 'https://issuu.com/malvernnews', 'username': 'malvernnews', 'access': '200'}, 
+'Rolleston news': {'publisher': 'Malvern News', 'web_title': 'Malvern News', 'mms_id': '9914839233502836', 'holding_id': '22211274440002836', 'po_line': '247125-ilsdb', 'pattern': '', 'days': '30', 'url': 'https://issuu.com/malvernnews', 'username': 'malvernnews', 'access': '200'}, 
 
 }
 

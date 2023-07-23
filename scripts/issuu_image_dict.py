@@ -13,7 +13,7 @@ issuu_dict = {
 
 "Canterbury farming": {'publisher': 'Far Media Limited', 'web_title': 'Canterbury Farming', 'mms_id': '9916663973502836', 'holding_id': '22215763850002836', 'po_line': '314250-ilsdb', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/canterburyfarming5', 'username': 'canterburyfarming5', "access": "200"} ,
 "Debate": {'publisher': 'Auckland student movement @ AUT', 'web_title': 'Debate Magazine', 'mms_id': '9917613523502836', 'holding_id': '22201059740002836', 'po_line': '353545-ilsdb', 'pattern': 'iss yyyy mm', 'days': '14', 'url': 'https://issuu.com/ausm', 'username': 'ausm', "access": "200"} ,
-"SLANZA collected": {'publisher': 'SLANZA', 'web_title': 'School Library Association of New Zealand Aotearoa', 'mms_id': '9913922713502836', 'holding_id': '22246110380002836', 'po_line': '244659-ilsdb', 'pattern': 'iss yyyy', 'days': '180', 'url': 'https://issuu.com/slanza', 'username': 'slanza', 'access': '200'},
+"SLANZA collected": {'publisher': 'SLANZA', 'web_title': 'School Library Association of New Zealand Aotearoa', 'mms_id': '9913922713502836', 'holding_id': '22246110380002836', 'po_line': '244659-ilsdb', 'pattern': 'iss yyyy', 'days': '180', 'url': 'https://issuu.com/slanza', 'username': 'slanza', 'access': '100'},
 
 "Channel North Shore": {'publisher': 'Benefitz', 'web_title': 'Benefitz', 'mms_id': '9918746770802836', 'holding_id': '22324421490002836', 'po_line': 'POL-89721', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/benefitz', 'username': 'benefitz', "access": "200"} ,
 "Kaleidoscope Kristin community": {'publisher': 'Benefitz', 'web_title': 'Benefitz', 'mms_id': '9918746770902836', 'holding_id': '22324421520002836', 'po_line': 'POL-89718', 'pattern': 'iss yyyy mm', 'days': '365', 'url': 'https://issuu.com/benefitz', 'username': 'benefitz', "access": "200"} ,
@@ -37,7 +37,7 @@ issuu_dict = {
 "Pacific powerBoat covering Australia and New Zealand": {'publisher': 'D&B Publishing Ltd', 'web_title': None, 'mms_id': '9914735373502836', 'holding_id': '22206897900002836', 'po_line': '255143-ilsdb', 'pattern': 'yyyy mm', 'days': '60', 'url': 'https://issuu.com/momentummarketing9', 'username': 'momentummarketing9', "access": "200"} ,
 'Art Beat Christchurch and Canterbury': {'publisher': 'Warren Feeney', 'web_title': 'warrenfeeney', 'mms_id': '9918972471802836', 'holding_id': '22347350840002836', 'po_line': 'POL-123725', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/warrenfeeney', 'username': 'warrenfeeney', 'access': '200'},
  "The Eastbourne herald": {'publisher': 'Eastbourne Herald', 'web_title': None, 'mms_id': '9914872783502836', 'holding_id': '22239763660002836', 'po_line': '249090-ilsdb', 'pattern': 'yyyy mm', 'days': '30', 'url': "https://issuu.com/theeastbourneherald", 'username': 'theeastbourneherald', "access": "200"} ,
-"The farmlander": {'publisher': 'Farmlands Co-Operative Society Ltd', 'web_title': 'Farmlands', 'mms_id': '9918586871802836', 'holding_id': '22321171590002836', 'po_line': 'POL-82964', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/farmlands', 'username': 'farmlands', "access": "100"} ,
+"The farmlander": {'publisher': 'Farmlands Co-Operative Society Ltd', 'web_title': 'Farmlands', 'mms_id': '9918586871802836', 'holding_id': '22321171590002836', 'po_line': 'POL-82964', 'pattern': 'yyyy Season', 'days': '30', 'url': 'https://issuu.com/farmlands', 'username': 'farmlands', "access": "100"} ,
 "Featherston phoenix": {'publisher': 'Featherston Phoenix', 'web_title': None, 'mms_id': '9918849170802836', 'holding_id': '22335290910002836', 'po_line': 'POL-110809', 'pattern': 'yyyy mm', 'days': '35', 'url': 'https://issuu.com/featherstonphoenix', 'username': 'featherstonphoenix', "access": "100"} ,
 "New Zealand freemason": {'publisher': 'Freemasons New Zealand', 'web_title': None, 'mms_id': '9912673723502836', 'holding_id': '22186820500002836', 'po_line': '148454-ilsdb', 'pattern': 'v iss yyyy mm', 'days': '90', 'url': "https://issuu.com/fmnz", 'username': 'fmnz', "access": "100"} ,
 
@@ -94,8 +94,7 @@ issuu_dict = {
 "Tira ora": {'publisher': 'Karamu High School', 'web_title': 'Karamu High School', 'mms_id': '9919259519902836', 'holding_id': '22389691330002836', 'po_line': 'POL-194663', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/karamuhighschool', 'username': 'karamuhighschool', 'access': '200'} ,
 "The Fringe": {'publisher': 'Fringe Media', 'web_title': 'Fringe Media', 'mms_id': '9919259519802836', 'holding_id': '22389691300002836', 'po_line': 'POL-194714', 'pattern': 'yyyy mm', 'days': '30', 'url': 'https://issuu.com/fringemedia8', 'username': 'fringemedia8', 'access': '200'} ,
 "Academic freedom survey": {'publisher': 'Free Speech Union', 'web_title': 'freespeechunion', 'mms_id': '9919316426802836', 'holding_id': '22397840020002836', 'po_line': 'POL-205675', 'pattern': '', 'days': '365', 'url': 'https://issuu.com/freespeechunion', 'username': 'freespeechunion', 'access': '200'} ,
-
-
+'Te Whatu Ora panui Health New Zealand Canterbury news': {'publisher': 'Te Whatu Ora Waitaha Canterbury', 'web_title': 'Te Whatu Ora - Waitaha / Te Tai o Poutini', 'mms_id': '9919327635802836', 'holding_id': '22399754490002836', 'po_line': 'POL-207513', 'pattern': '', 'days': '7', 'url': 'https://issuu.com/canterburydhb', 'username': 'canterburydhb', 'access': '100'}
 
 }
 

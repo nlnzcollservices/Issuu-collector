@@ -325,8 +325,7 @@ def load_driver(url):
 	element_to_click = driver.find_element(By.TAG_NAME, "h1")
 	click_element(element_to_click)
 	driver.implicitly_wait(5)
-
-
+	#change to [-2] when listing pages for backlogs as link will be ended with /2 ,/3,/4
 	username = url.split("/")[-1]
 	html = driver.page_source
 	soup = bs(html, "html.parser")	
@@ -383,12 +382,31 @@ def scroll_down(driver):
         # if new_height == last_height:
         # #     break
         # last_height = new_height
+from time import sleep
+
+def scroll_slightly_down(driver, scroll_factor=0.25):
+    """
+    A method for scrolling the page slightly.
+    Origin: #https://stackoverflow.com/questions/48850974/selenium-scroll-to-end-of-page-in-dynamically-loading-webpage
+    
+    Parameters:
+    driver (WebDriver): The Selenium WebDriver instance.
+    scroll_factor (float): The fraction of the screen height to scroll. Default is 0.25 (quarter of the screen).
+    """
+    current_height = driver.execute_script("return window.pageYOffset")
+    window_height = driver.execute_script("return window.innerHeight")
+    scroll_distance = window_height * scroll_factor
+    target_height = current_height + scroll_distance
+
+    driver.execute_script("window.scrollTo(0, {});".format(target_height))
+    sleep(2)  # Adjust sleep time as needed
+
 
 
 def sip_checker(sippath):
 
 	"""Checks if met files are empty, or no_file
-		Parameters:
+		Parameters:SS
 		sippath(str) - path to sip
 		Returns:
 		flag(bool) - True if error found.  False if size of file is wrong or audio file or met file are empty.
@@ -651,6 +669,60 @@ def harvester_routine(issuu):
 					# 	else:
 					# 		others.append(doc["docname"])
 					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
+					if issuu in ['Malvern news']:
+						if "stone" in doc["docname"] or "issue" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							web_title = web_title.lstrip("Malvern News - ").rstrip(" - Christmas Issu").rstrip(" - Christmas Issue")
+							print(web_title)
+							issue = web_title.split(" ")[1]
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2].capitalize()
+							day = web_title.lower().split(" ")[-3].strip("-thst")
+							if "," in issue:
+								issue = issue.replace(",","")
+							elif not web_title.lower().startswith("issue"):
+								issue = None
+								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+
+							# print(issue)
+							# print(issue.isdigit())
+							# if not issue.isdigit():
+							# 	issue = None
+								#my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})	
+							if issue and not issue.startswith("2"):
+								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+							else:
+								others.append(doc["docname"])
+						else:
+							others.append(doc["docname"])
+
+
+
+
+					if issuu in ['Rolleston news']:
+						if "stone" in doc["docname"] or "issue" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							web_title = web_title.rstrip("Malvern News - ")
+							print(web_title)
+							issue = web_title.split(" ")[1]
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2].capitalize()
+							day = web_title.lower().split(" ")[-3].strip("-thst")
+							if not web_title.lower().startswith("issue"):
+								issue = None
+								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							elif not "," in issue:
+								if issue.startswith("2") or issue in ["193","194","195","196","198"]:
+									my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							else:
+								others.append(doc["docname"])
+						else:
+							others.append(doc["docname"])
+
 					if issuu in ['Academic freedom survey']:
 
 							print(doc["docname"])
@@ -1252,11 +1324,23 @@ def harvester_routine(issuu):
 			
 							year = doc["docname"].split("-")[-1]
 							season = doc["docname"].split("-")[-2].capitalize()
-							if len(year)!=4:
-								web_title=request_title(pdf_url)
+							# if len(year)!=4:
+							# 	web_title=request_title(pdf_url)
+							if doc["docname"] =="cityscape-issue-109":
+								year = "2022"
+								month = "November"
+								issue = "109"
+								my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 							else:
-								my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-	
+								if season in months_dictionary.keys():
+									month = str(season)
+									season = None
+									my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
+								else:
+
+									my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
+
 						else:
 							others.append(doc["docname"])
 					if issuu in ["Hort news"]:
@@ -1314,6 +1398,10 @@ def harvester_routine(issuu):
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							day = web_title.split(" ")[-3]
+							if doc["docname"] =="rn_780_july_18":
+								year = "2023"
+								month = "July"
+								day ="18"
 							my_date=dateparser.parse(day+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -2207,7 +2295,8 @@ def harvester_routine(issuu):
 							if "New Zealand" in web_title:
 								#print(web_title)
 								#print(doc["docname"])
-								title = web_title.replace("Active Retirees New Zealand Magazine","").replace("Active Retirees Magazine - New Zealand","").replace("Active Retirees ","").replace(" - New Zealand","").rstrip(" ")
+								#Active Retires New Zealand - Winter 2023
+								title = web_title.replace("Active Retirees New Zealand Magazine","").replace("Active Retires New Zealand - ","").replace("Active Retirees Magazine - New Zealand","").replace("Active Retirees ","").replace(" - New Zealand","").rstrip(" ")
 								#year= re.findall('\d{4}', title)[0].rstrip(" ")
 								# print(title)
 								year = title.split(" ")[-1]
@@ -2253,12 +2342,10 @@ def harvester_routine(issuu):
 								my_date = dateparser.parse("23 April 2023", settings={'DATE_ORDER': 'DMY'})	
 
 							else:
-								# web_date = doc["docname"].replace("ponsonby_news_","").replace("_website","").replace("_web","").replace("_final","").replace("_"," ")
-								# print(web_date)
-								year = web_title.split("'")[-1]
+								year  = doc["docname"].split("_")[-1]
 								if len(year)==2:
 									year = "20"+year
-								month = web_title.split("-")[-1].lstrip(" ").split("'")[0]
+								month = doc["docname"].split("_")[-2].capitalize()
 								if month in short_month_dict.keys():
 									month = short_month_dict[month]
 								my_date = dateparser.parse("01 "+month + " " +year, settings={'DATE_ORDER': 'DMY'})
@@ -2430,19 +2517,16 @@ def harvester_routine(issuu):
 						else:
 							others.append(doc["docname"])
 
-					if issuu in ['War cry']:
-						if "war" in doc["docname"] and "cry" in doc["docname"]:
+					if issuu in ['SALT']:
+						if doc["docname"].startswith("salt"):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
-							year = web_title.split(" ")[2]
-							month = web_title.split(" ")[1]
-							day = web_title.split(" ")[0]
-							if not month in months_dictionary.keys():
-								year = web_title.split(" ")[1]
-								month = web_title.split(" ")[0]
-								day = "01"
-							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+							month_year = web_title.split(",")[1].rstrip(" ").lstrip()
+							month = month_year.split(" ")[0]
+							year = month_year.split(" ")[1]
+
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
 
@@ -2512,7 +2596,7 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "DressageNZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business', 'FMCG business leaders forum special report','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles","The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag","Education Gazette","Army news","Love your workspace Christchurch","Nelson magazine","Wide Sky",'Regulus',"Irhace","Winepress the official magazine of Wine Marlborough","Drinksbiz",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hort news",'Cruise news','NZsecurity',"Line of defence",'Fire NZ',"Hauraki rail trail guide","War cry","Lizard News","Water","Water directory", "National performance review","Purongo a Tau annual report", 'Academic freedom survey'] and my_dict["day"]=="01":
+								if issuu in ["Active retirees","Taranaki farming lifestyles","Waikato Farming Lifestyle","Hawke's Bay farming lifestyles","Northern farming lifestyles", "DressageNZ Bulletin","Manawatu farming lifestyles","Ponsonby news","Explore Dunedin","Down in Edin magazine","Family care","Franchise New Zealand","Air force news","New Zealand winegrower official journal","Forest and bird","Food New Zealand","Asset","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"FYI","The bay waka","Update Canterbury Employers",'Love your workspace',"Focus",'Destination Devonport','Diabetes wellness','Dairy farmer','Hospitality business','FMCG business', 'FMCG business leaders forum special report','The Shout New Zealand','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Junction Puhoi to Waipu','Ram',"Canterbury today","Te korowai o Tangaroa","Principals today",'Builders & contractors',"Massive",'Bunnings New Zealand','Bunnings New Zealand','New Zealand printer','Annual report Mercury','Interim report Mercury','Annual review taxpayers',"Off-site",'Hooked up',"Air chats","RROGA news",'Navy today Royal New Zealand Navy','Cityscape Christchurch here and now',"What's hot Christchurch",'Coast and country news','Waterline the Bay of Plenty and Coromandel',"The Hobson life and lifestyle",'Prospectus',"The Learning Connexions graduation",'New Zealand cameratalk',"The lampstand","Waikato farming lifestyles","The specialist",'Summerset scene','Our place','Modern slavery statement',"Getting the basics right","Cityscape Christchurch here and now","What's hot Christchurch","New farm dairies",'Annual report AFL',"Northland must do","The New Zealand mortgage mag","Education Gazette","Army news","Love your workspace Christchurch","Nelson magazine","Wide Sky",'Regulus',"Irhace","Winepress the official magazine of Wine Marlborough","Drinksbiz",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hort news",'Cruise news','NZsecurity',"Line of defence",'Fire NZ',"Hauraki rail trail guide","SALT","Lizard News","Water","Water directory", "National performance review","Purongo a Tau annual report", 'Academic freedom survey'] and my_dict["day"]=="01":
 									my_dict["day"]=None
 								if issuu in ["Explore Dunedin","Family care","Franchise New Zealand","Forest and bird","Human resources","Schoolnews","Annual report",'ATC','Better breathing',"Update Canterbury Employers",'Love your workspace','Destination Devonport','Diabetes wellness','World of wine','Pacific romance','Junction handbook Puhoi - Waipu','Annual report Mercury','Interim report Mercury','Annual review taxpayers','Hooked up',"Air chats","RROGA news",'Cityscape Christchurch here and now',"What's hot Christchurch",'Prospectus',"The Learning Connexions graduation","The lampstand",'Summerset scene','Our place','Modern slavery statement',"Principals today","Getting the basics right", 'FMCG business leaders forum special report', "What's hot Christchurch","New farm dairies",'Annual report AFL','Northland must do',"The New Zealand mortgage mag","DressageNZ bulletin","Massive","Education Gazette","Love your workspace Christchurch",'Te Rā o Waitangi',"Annual report Parininihi","Annual report Te Korowai","Hauraki rail trail guide" ,"Water directory", "National performance review","Purongo a Tau annual report",'Academic freedom survey']:
 									my_dict["month"] = None
@@ -2609,12 +2693,14 @@ def harvester_routine(issuu):
 			# 		except Exception as e:
 			# 			print(str(e))
 
-			sleep(30)
+			sleep(20)
 			# try:	
 			# 	driver.find_element(By.XPATH,"//button[contains(@aria-label, 'Download')]").click()
 			# except Exception as e:
 			# 	print("here11")
 			try:
+				scroll_slightly_down(driver)
+				sleep(20)
 				driver.find_element(By.XPATH,"//button[contains(@aria-describedby, 'download_tooltip')]").click()
 				# <button aria-describedby="download_tooltip" class="sc-1an4lpe-1 jPjQNo" style=""><div aria-hidden="true" class="sc-1an4lpe-0 bQChXH"><svg fill="currentColor" height="24" viewBox="0 0 24 24" width="24" role="img"><path d="M11.8484 15.3864C11.8664 15.4081 11.8894 15.4257 11.9157 15.4378C11.9419 15.4498 11.9708 15.4561 12 15.4561C12.0292 15.4561 12.0581 15.4498 12.0843 15.4378C12.1106 15.4257 12.1336 15.4081 12.1516 15.3864L14.8468 12.1659C14.9455 12.0477 14.8564 11.8727 14.6952 11.8727H12.912V4.18182C12.912 4.08182 12.8254 4 12.7195 4H11.2757C11.1698 4 11.0832 4.08182 11.0832 4.18182V11.8705H9.30481C9.14358 11.8705 9.05455 12.0455 9.15321 12.1636L11.8484 15.3864ZM19.8075 14.5909H18.3636C18.2578 14.5909 18.1711 14.6727 18.1711 14.7727V18.2727H5.82888V14.7727C5.82888 14.6727 5.74225 14.5909 5.63636 14.5909H4.19251C4.08663 14.5909 4 14.6727 4 14.7727V19.2727C4 19.675 4.34412 20 4.77005 20H19.2299C19.6559 20 20 19.675 20 19.2727V14.7727C20 14.6727 19.9134 14.5909 19.8075 14.5909Z"></path></svg></div>Download</button>
 

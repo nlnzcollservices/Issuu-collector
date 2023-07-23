@@ -258,12 +258,16 @@ class SIPMaker():
 			os.chdir("scripts")
 			os.getcwd()
 def get_my_doc_json(url):
+
 	print(url)
 	driver.get(url)
 	driver.implicitly_wait(13)
 	#scroll_down(driver)
 	#driver.implicitly_wait(5)
+	#############################################
+	#change to [-2] when listing pages for backlogs as link will be ended with /2 ,/3,/4
 	username = url.split("/")[-1]
+	##############################################
 	html = driver.page_source
 	soup = bs(html, "html.parser")
 	links = soup.find_all("a", href=True)
@@ -522,7 +526,7 @@ def harvester_routine(issuu):
 		for el in data.split("\n")[:-1]:
 			my_dates.append(el)
 	except Exception as e:
-		# print("here2")
+		# print("here2").
 		print(str(e))
 	if my_dates !=[]:
 		print('Already harvested:')
@@ -588,7 +592,7 @@ def harvester_routine(issuu):
 
 				if not doc["docname"] in my_docnames:
 					print("here4444")
-					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
+					#######DO NOT REMOVE, USE THE TEMPLATE WHEN ADDING NEW TITLE#######################
 					# if issuu in ['']:
 					# 	if "" in doc["docname"]:
 					# 		print(doc["docname"])
@@ -601,7 +605,37 @@ def harvester_routine(issuu):
 					# 	else:	
 					# 		others.append(doc["docname"])
 					
-					#######DO NOT REMOVE, USE IS WHEN ADDING NEW TITLE#######################
+					#######DO NOT REMOVE, USE THE TEMPLATE WHEN ADDING NEW TITLE#######################
+					if issuu in ['Te Whatu Ora panui Health New Zealand Canterbury news']:
+						if "-cant" in doc["docname"] and "news-" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							if " / " in web_title:
+								web_title = web_title.split(" / ")[0]
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							day = web_title.split(" ")[-3]
+							
+							my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+
+
+
+
+
+					if issuu in ['Academic freedom survey']:
+						if "" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]							
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+
+					
 					if issuu in ["Auto channel"]:
 						if "ac_" in doc["docname"] or "auto" in doc["docname"]:
 							print(doc["docname"])
@@ -881,32 +915,10 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title, published, published_stamp = request_title_date(pdf_url)
 							print(web_title)
-							if web_title.split(" ")[-1].isdigit() and len(web_title.split(" ")[-1]) ==4:
-								year = web_title.split(" ")[-1]
-								if " - " in web_title:
-									issue = web_title.split(" - ")[0].split(" ")[-1]
-									my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+							year = web_title.split(" ")[-3]
+							issue = web_title.split(" ")[-1]
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
 
-								else:
-									season = web_title.split(" ")[-2]
-									my_date=dateparser.parse("01 "+seas_dict[season]+" "+year, settings ={'DATE_ORDER': 'DMY'})
-
-							else:
-								if  "-" in web_title:
-									web_title = web_title.split("-")[0].rstrip(" ")
-								if "—" in web_title:
-									web_title = web_title.split("—")[0].rstrip(" ")
-								print(web_title)
-								year = dateparser.parse(published_stamp).strftime("%Y")
-								#month = dateparser.parse(published_stamp).strftime("%b")
-								number = web_title.split(" / ")[0].lstrip("N. ")
-								volume = web_title.split(" / ")[1].lstrip("V. ")
-								my_design = description_maker.make_description(volume, number ,None,year,None,None)
-								my_date=0
-								print(my_date)
-								print(year)
-								print(number)
-								print(volume)
 
 
 					if issuu in ["Prospectus imagine your future"]:
@@ -2135,9 +2147,9 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritime worker Wellington branch","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The Observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
+								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritime worker Wellington branch","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'Academic freedom survey' 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The Observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
 									my_dict["day"]=None
-								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland'] and (my_dict["season"] or my_dict["month"]=="January" ):
+								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland', 'Academic freedom survey'] and (my_dict["season"] or my_dict["month"]=="January" ):
 									my_dict["month"] = None
 
 					else:
