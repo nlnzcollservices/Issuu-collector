@@ -32,7 +32,7 @@ from alma_tools import AlmaTools
 from email_maker import Gen_Emails
 import last_representation_getter
 import send_email
-import json
+import json 
 
 # if dt.now().strftime("%m") in ["11","12","1"]:
 # 		seas_dict ["Summer"]="December"
@@ -716,7 +716,7 @@ def harvester_routine(issuu):
 								issue = None
 								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 							elif not "," in issue:
-								if issue.startswith("2") or issue in ["193","194","195","196","198"]:
+								if issue.startswith("2") or issue in ["193","194","195","196","197","198"]:
 									my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 							else:
 								others.append(doc["docname"])
@@ -1121,7 +1121,7 @@ def harvester_routine(issuu):
 							others.append(doc["docname"])
 		
 					if issuu in ['Farmers weekly']:
-						if doc["docname"].startswith("fw_") or doc["docname"].endswith("issue"):
+						if (doc["docname"].startswith("fw_") or doc["docname"].endswith("issue")) and not ("ag_ed") in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
@@ -2340,6 +2340,10 @@ def harvester_routine(issuu):
 								my_date = dateparser.parse("01 August 2022", settings={'DATE_ORDER': 'DMY'})
 							elif doc["docname"] == "ponsonby_news_april_23_website_updated":
 								my_date = dateparser.parse("23 April 2023", settings={'DATE_ORDER': 'DMY'})	
+							elif doc["docname"] == "ponsonby_news_august_2023_website":
+								my_date = dateparser.parse("01 August 2023",settings={'DATE_ORDER': 'DMY'})
+							elif doc["docname"] == "ponsonby_news_september_2023_website":
+								my_date = dateparser.parse("01 September 2023",settings={'DATE_ORDER': 'DMY'})
 
 							else:
 								year  = doc["docname"].split("_")[-1]
@@ -2522,10 +2526,13 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							print(web_title)
-							month_year = web_title.split(",")[1].rstrip(" ").lstrip()
-							month = month_year.split(" ")[0]
-							year = month_year.split(" ")[1]
 
+							web_title = web_title.replace(", NZFTS","")
+							#month_year = web_title.split(",")[1].rstrip(" ").lstrip()
+							#month = month_year.split(" ")[0]
+							# year = month_year.split(" ")[1]
+							month = web_title.split(" ")[-2]
+							year =web_title.split(" ")[-1]
 							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
 						else:
 							others.append(doc["docname"])
@@ -2534,9 +2541,10 @@ def harvester_routine(issuu):
 						#print("here")
 						my_date = dateparser.parse(doc["docname"],settings={'DATE_ORDER': 'DMY'})
 						if not my_date:
+							print(doc["docname"])
 
 							web_title = request_title(pdf_url)
-
+							print(web_title)
 							year = web_title.split(" ")[-1]
 							month = web_title.split(" ")[-2]
 							day = web_title.split(" ")[0]
@@ -2544,7 +2552,6 @@ def harvester_routine(issuu):
 								my_date =dateparser.parse(web_title,settings={'DATE_ORDER': 'DMY'})
 							except:
 								my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
-
 
 					if issuu in ["The Geraldine news"]:
 						print(doc["docname"])
@@ -2556,6 +2563,7 @@ def harvester_routine(issuu):
 						month = web_title.split(".")[-2]
 						day = web_title.split(" ")[-1].split(".")[0]				
 						my_date=dateparser.parse(day+" "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						print(my_date)
 						
 				if month:
 					if "-" in month:
@@ -2580,7 +2588,7 @@ def harvester_routine(issuu):
 					#	print(alma_last_representation_list[0])
 					#	print(my_date_stamp)
 						#print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu in ["The Rangitoto Observer","The New Zealand mortgage mag","The weekend lifestyler"]:
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu in ["The Geraldine news", "Franchise New Zealand"]:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"]
 								my_dict["url"]=pdf_url
@@ -2699,7 +2707,7 @@ def harvester_routine(issuu):
 			# except Exception as e:
 			# 	print("here11")
 			try:
-				scroll_slightly_down(driver)
+				#scroll_slightly_down(driver)
 				sleep(20)
 				driver.find_element(By.XPATH,"//button[contains(@aria-describedby, 'download_tooltip')]").click()
 				# <button aria-describedby="download_tooltip" class="sc-1an4lpe-1 jPjQNo" style=""><div aria-hidden="true" class="sc-1an4lpe-0 bQChXH"><svg fill="currentColor" height="24" viewBox="0 0 24 24" width="24" role="img"><path d="M11.8484 15.3864C11.8664 15.4081 11.8894 15.4257 11.9157 15.4378C11.9419 15.4498 11.9708 15.4561 12 15.4561C12.0292 15.4561 12.0581 15.4498 12.0843 15.4378C12.1106 15.4257 12.1336 15.4081 12.1516 15.3864L14.8468 12.1659C14.9455 12.0477 14.8564 11.8727 14.6952 11.8727H12.912V4.18182C12.912 4.08182 12.8254 4 12.7195 4H11.2757C11.1698 4 11.0832 4.08182 11.0832 4.18182V11.8705H9.30481C9.14358 11.8705 9.05455 12.0455 9.15321 12.1636L11.8484 15.3864ZM19.8075 14.5909H18.3636C18.2578 14.5909 18.1711 14.6727 18.1711 14.7727V18.2727H5.82888V14.7727C5.82888 14.6727 5.74225 14.5909 5.63636 14.5909H4.19251C4.08663 14.5909 4 14.6727 4 14.7727V19.2727C4 19.675 4.34412 20 4.77005 20H19.2299C19.6559 20 20 19.675 20 19.2727V14.7727C20 14.6727 19.9134 14.5909 19.8075 14.5909Z"></path></svg></div>Download</button>

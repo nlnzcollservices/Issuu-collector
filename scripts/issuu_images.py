@@ -21,7 +21,7 @@ from my_settings  import sip_folder_images as sip_folder
 sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\alma_tools')
 from alma_tools import AlmaTools
 from email_maker import Gen_Emails
-
+import filetype
 #sys.path.insert(0,r'Y:\ndha\pre-deposit_prod\LD_working\waterford\scripts')
 import last_representation_getter
 import send_email
@@ -606,8 +606,29 @@ def harvester_routine(issuu):
 					# 		others.append(doc["docname"])
 					
 					#######DO NOT REMOVE, USE THE TEMPLATE WHEN ADDING NEW TITLE#######################
+					if issuu in ['Arthritis annual review report']:
+						if not "join" in doc["docname"] and ("annual" in doc["docname"] or "review" in doc["docname"]):
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+						
+							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
+					if issuu in ['Joint support']:
+						if "join" in doc["docname"]:
+							print(doc["docname"])
+							web_title = request_title(pdf_url)
+							print(web_title)
+							year = web_title.split(" ")[-1]
+							month = web_title.split(" ")[-2]
+							
+							my_date=dateparser.parse("01 "+month+" "+year, settings ={'DATE_ORDER': 'DMY'})
+						else:	
+							others.append(doc["docname"])
 					if issuu in ['Te Whatu Ora panui Health New Zealand Canterbury news']:
-						if "-cant" in doc["docname"] and "news-" in doc["docname"]:
+						if "-cant" in doc["docname"] and "news" in doc["docname"]:
 							print(doc["docname"])
 							web_title = request_title(pdf_url)
 							if " / " in web_title:
@@ -915,6 +936,7 @@ def harvester_routine(issuu):
 							print(doc["docname"])
 							web_title, published, published_stamp = request_title_date(pdf_url)
 							print(web_title)
+							web_title = web_title.rstrip(" ")
 							year = web_title.split(" ")[-3]
 							issue = web_title.split(" ")[-1]
 							my_date=dateparser.parse("01 01 "+year, settings ={'DATE_ORDER': 'DMY'})
@@ -2098,12 +2120,13 @@ def harvester_routine(issuu):
 							my_date=dateparser.parse("01 " + month + year, settings ={'DATE_ORDER': 'DMY'})
 				
 					if issuu in ['SLANZA collected']:
+						print("SLANZA")
 						if not "guide" in doc["docname"]:
 							print(doc["docname"])
 							web_title, published, published_stamp = request_title_date(pdf_url)
 							print(web_title)
 							issue = web_title.split("#")[-1]
-							if doc["docname"] =="collected_30readytopublish":
+							if doc["docname"] in ["collected_30readytopublish","collected31"]:
 								year = "2023"
 							else:						
 								year = dateparser.parse(published_stamp).strftime("%Y")
@@ -2131,7 +2154,7 @@ def harvester_routine(issuu):
 							new_title = None
 						print(my_date_stamp)
 						print(my_dates)
-						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title or issuu in ["Debate","The Observer","Playmarket annual"]:
+						if overflow_flag or (my_date_stamp > alma_last_representation_list[0] and my_date.strftime("%d %B %Y") not in my_dates) or issuu==new_title or issuu in ["Debate","The Observer","Playmarket annual","Channel North Shore"]:
 								my_dict["docname"] =doc["docname"]
 								my_dict["document_id"] = doc["documentId"] 
 								my_dict["url"]=pdf_url
@@ -2147,9 +2170,9 @@ def harvester_routine(issuu):
 								my_dict["volume"] = volume
 								my_dict["number"] = number
 								my_dict["custom_design"] = custom_design
-								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritime worker Wellington branch","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'Academic freedom survey' 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The Observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice'] and my_dict["day"]=="01":
+								if issuu in ["PUSH",'Debate','Explore south discover the South Island','New Zealand alpaca',"What's the story",'Onfilm',"Guano the Bats programme",'AUT Millennium flame',"AUT Millennium magazine",'Channel North Shore','Kaleidoscope Kristin community',"Kete korero","SLANZA collected","NZ manufacturer success through innovation",'At the bar','Alloy boat magazine',"The Eastbourne herald","Pacific powerBoat covering Australia and New Zealand","The farmlander",'Featherston phoenix','New Zealand freemason',"Heritage New Zealand","The lion Mount Albert Grammar School","The Orchardist","Heritage quarterly heritage","Heritage New Zealand",'NZGrower',"Ōtaki street scene",'Otaki today Nga korero o Otaki','Canterbury farming','Kia ora India',"Covernote IBANZ","The maritime worker Wellington branch","The maritimes newsletter of the Maritime Union of New Zealand","Nelson magazine","New Zealand Business and Parliament Trust","NZBPT news",'Midwife Aotearoa New Zealand','Chat 21 Down Syndrome community',"Nourish magazine", 'Academic freedom survey' 'New Zealand apparel trade directory','Playmarket annual','Real Estate',"The Observer","Showcircuit ultimate equestrian magazine","Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work',"Eastlife Howick, Botany, Pakuranga and surrounds",'Design and build South East','Rural living handbook',"Avenues the magazine Christchurch lives by","Family times",'Agedplus village business','Agedplus village',"Restaurant and cafe buyer guide","Restaurant and cafe","F and B technology","Fennec","New Zealand apparel",'Hotel',"Supermarketnews","Kamo connect",'Art Beat Christchurch and Canterbury', 'Otuihau News', "Auto channel",'Luminate festival', "Rodnik Russian Cultural Herald",'Te panui runaka','Pipiwharauroa',"Prospectus imagine your future","Nexus","Joiners magazine",'B + d = xin zhu, zhu zin',"Nelson City guide","The MAP",'Leaders','The Fringe',"Yearbook","St Josephs Maori Girls College","Tira ora","Dawn chorus","Learning Auckland",'Student voice','Arthritis annual review report','Joint support'] and my_dict["day"]=="01":
 									my_dict["day"]=None
-								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland', 'Academic freedom survey'] and (my_dict["season"] or my_dict["month"]=="January" ):
+								if issuu in ['Debate',"What's the story",'AUT Millennium flame',"SLANZA collected",'Alloy boat magazine',"Ōtaki street scene","Carterton and South Wairarapa street scene","Heritage quarterly heritage","Heritage New Zealand","New Zealand Business and Parliament Trust",'Playmarket annual',"Salient Victoria University","Finalist stories",'Tract  landscape and architecture research work','Design and build South East',"Restaurant and cafe buyer guide","Fennec",'Luminate festival',"Rodnik Russian Cultural Herald","Prospectus imagine your future",'Nexus','B + d = xin zhu, zhu zin',"Chat 21 Down Syndrome community","Nelson City guide",'Leaders',"Yearbook","St Josephs Maori Girls College","Tira ora",'New Zealand apparel trade directory','Learning Auckland', 'Academic freedom survey','Arthritis annual review report'] and (my_dict["season"] or my_dict["month"]=="January" ):
 									my_dict["month"] = None
 
 					else:
@@ -2229,6 +2252,7 @@ def harvester_routine(issuu):
 						print(str(e))
 					except Exception as e:
 						print(str(e))
+
 			my_filenames = os.listdir(file_folder)
 			print(my_filenames)
 			print(len(my_filenames))
@@ -2236,8 +2260,10 @@ def harvester_routine(issuu):
 			if len(my_filenames)<max_pages:
 				quit()
 			for image in my_filenames:
+				fileinfo = filetype.guess(os.path.join(file_folder, image))# new
+				extens = fileinfo.extension#new
 				if os.path.getsize(os.path.join(file_folder, image)) == int(size_dictionary[image]):
-					shutil.move(os.path.join(file_folder, image),os.path.join(file_folder, "page_" + image.split('.')[0].split("_")[1].zfill(3)+".jpg"))
+					shutil.move(os.path.join(file_folder, image),os.path.join(file_folder, "page_" + image.split('.')[0].split("_")[1].zfill(3)+"."+extens))#".jpg" new
 				else:
 					quit()
 
